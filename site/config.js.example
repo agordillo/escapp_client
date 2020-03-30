@@ -1,0 +1,18 @@
+let LOCALES = {
+  es:{
+    "i.auth_title":"Autentícate en Escapp",
+  },
+};
+
+
+let CONFIG = {
+  endpoint:"https://escapp.dit.upm.es/api/escapeRooms/ID",
+  local_storage_key:"LocalStorageKey",
+  imagesPath:"/src/images/",
+	I18n: {
+		locale: "es",
+		default_locale: "es",
+		available_locales: ["es","en"],
+		locales: LOCALES
+	}
+};

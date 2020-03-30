@@ -1,0 +1,1 @@
+import ESCAPP from './js/Escapp.js';
