@@ -2,6 +2,9 @@ let escapp;
 
 $(document).ready(function(){
 	console.log("Init escapp with options:");
+	if(window['escapp_environment']==="production"){
+		CONFIG.imagesPath = "./images/";
+	}
 	console.log(CONFIG);
 	escapp = new ESCAPP(CONFIG);
 	loadEvents();

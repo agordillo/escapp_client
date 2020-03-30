@@ -1,24 +1,30 @@
 const Webpack = require('webpack');
 const merge = require('webpack-merge');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 const common = require('./webpack.common.js');
 
 module.exports = merge(common, {
   mode: 'production',
-  devtool: 'source-map',
   stats: 'errors-only',
-  bail: true,
   output: {
-    filename: 'js/[name].[chunkhash:8].js',
-    chunkFilename: 'js/[name].[chunkhash:8].chunk.js'
+    filename: 'escapp.js',
   },
   plugins: [
+    new CopyWebpackPlugin([{ 
+      from: 'src/images', to: 'images/' 
+    }]),
+    new Webpack.optimize.LimitChunkCountPlugin({
+        maxChunks: 1, // disable creating additional chunks
+    }),
     new Webpack.DefinePlugin({
-      'process.env.NODE_ENV': JSON.stringify('production')
+      'process.env': {
+        NODE_ENV: JSON.stringify(process.env.NODE_ENV || 'production')
+      }
     }),
     new Webpack.optimize.ModuleConcatenationPlugin(),
     new MiniCssExtractPlugin({
-      filename: 'bundle.css'
+      filename: 'escapp.css'
     })
   ],
   module: {

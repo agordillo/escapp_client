@@ -15,8 +15,10 @@ module.exports = merge(common, {
   },
   plugins: [
     new Webpack.DefinePlugin({
-      'process.env.NODE_ENV': JSON.stringify('development')
-    })
+      'process.env': {
+        NODE_ENV: JSON.stringify(process.env.NODE_ENV || 'development')
+      }
+    }),
   ],
   module: {
     rules: [

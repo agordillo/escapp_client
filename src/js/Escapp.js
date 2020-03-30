@@ -21,7 +21,7 @@ export default function ESCAPP(options){
   let defaults = {
     endpoint: undefined,
     localStorageKey: "ESCAPP",
-    imagesPath: "/assets/images/",
+    imagesPath: "./images/",
     restoreState: "REQUEST_USER", //AUTO, AUTO_NOTIFICATION, REQUEST_USER, NEVER
     user: {
       email: undefined,

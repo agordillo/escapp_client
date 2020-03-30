@@ -4,11 +4,10 @@ let LOCALES = {
   },
 };
 
-
 let CONFIG = {
-  endpoint:"https://escapp.dit.upm.es/api/escapeRooms/ID",
+  endpoint:"https://escapp.dit.upm.es/api/escapeRooms/id",
   local_storage_key:"LocalStorageKey",
-  imagesPath:"/src/images/",
+  imagesPath:"./src/images/",
 	I18n: {
 		locale: "es",
 		default_locale: "es",
