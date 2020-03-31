@@ -80,7 +80,7 @@ export default function ESCAPP(options){
       localErState = DEFAULT_ESCAPP_ER_STATE;
     }
     settings.localErState = localErState;
-    LocalStorage.saveSetting("localErState",localErState);
+    LocalStorage.saveSetting("localErState",settings.localErState);
   };
 
 
@@ -250,6 +250,7 @@ export default function ESCAPP(options){
           //Puzzle solved
           if(settings.localErState.puzzlesSolved.indexOf(puzzle_id)===-1){
             settings.localErState.puzzlesSolved.push(puzzle_id);
+            LocalStorage.saveSetting("localErState",settings.localErState);
           }
         } 
         if(typeof callback === "function"){
@@ -302,9 +303,9 @@ export default function ESCAPP(options){
       }
       return;
     }
-    let localErState = settings.localErState;
-    if(this.validateERState(localErState)===false){
-      localErState = Utils.deepMerge({}, DEFAULT_ESCAPP_ER_STATE);
+
+    if(this.validateERState(settings.localErState)===false){
+      settings.localErState = Utils.deepMerge({}, DEFAULT_ESCAPP_ER_STATE);
     }
     let remote_state_is_newest = this.isRemoteStateNewest();
     let er_state_to_restore = (remote_state_is_newest ? settings.remoteErState : settings.localErState);
@@ -320,7 +321,7 @@ export default function ESCAPP(options){
     //Ask or notify before returning remoteErState
     this.displayRestoreStateDialog(function(success){
       if(success===false){
-        er_state_to_restore = localErState;
+        er_state_to_restore = settings.localErState;
       }
       this.beforeRestoreState(er_state_to_restore);
       if(typeof callback === "function"){
