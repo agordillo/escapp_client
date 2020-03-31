@@ -8,10 +8,14 @@ let CONFIG = {
   endpoint:"https://escapp.dit.upm.es/api/escapeRooms/id",
   local_storage_key:"LocalStorageKey",
   imagesPath:"./src/images/",
-	I18n: {
-		locale: "es",
-		default_locale: "es",
-		available_locales: ["es","en"],
-		locales: LOCALES
-	}
+  I18n: {
+    locale: "es",
+    default_locale: "es",
+    available_locales: ["es","en"],
+    locales: LOCALES
+  },
+  browserRestrictions: {
+    chrome: ">20.1.1432",
+  },
+  autovalidate: false,
 };

@@ -1,4 +1,4 @@
-export let LOCALES = {
+export let ESCAPP_LOCALES = {
   en:{
     "i.button_ok":"Ok",
     "i.button_nok":"Cancel",

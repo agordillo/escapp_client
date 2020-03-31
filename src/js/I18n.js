@@ -1,6 +1,7 @@
 import * as Utils from './Utils.js';
-import {LOCALES} from './locales.js';
+import {ESCAPP_LOCALES} from './locales.js';
 
+let LOCALES = ESCAPP_LOCALES;
 let settings;
 
 export function init(options){

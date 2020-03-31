@@ -22,7 +22,7 @@ export function getParamsFromCurrentUrl(){
   } catch (e){
     return {};
   }; 
-}
+};
 
 export function getParamsFromUrl(url){
   let params = {};
@@ -50,4 +50,13 @@ export function validateEmail(email){
 	if(typeof email !== "string") return false;
 	var regex = /\S+@\S+\.\S+/;
 	return regex.test(email);
+};
+
+export function debug(msg){
+  if(typeof msg === "object"){
+    console.log("ESCAPP: [Object]");
+    console.log(msg);
+  } else {
+    console.log("ESCAPP: " + msg);
+  }
 };

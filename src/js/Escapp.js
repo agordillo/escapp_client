@@ -8,6 +8,8 @@
  *
  * @version 0.0.1
  */
+import "isomorphic-fetch";
+import Bowser from "bowser";
 import * as Utils from './Utils.js';
 import * as I18n from './I18n.js';
 import * as LocalStorage from './Storage.js';
@@ -30,9 +32,14 @@ export default function ESCAPP(options){
       authenticated: false,
       participation: undefined
     },
-    local_er_state: undefined,
-    remote_er_state: undefined,
+    localErState: undefined,
+    remoteErState: undefined,
+    autovalidate: false,
     I18n: undefined,
+    browserRestrictions: {
+      "internet explorer": ">10",
+    },
+    initCallback: undefined,
   };
 
   // Settings merged with defaults and extended options
@@ -64,12 +71,12 @@ export default function ESCAPP(options){
     }
 
     //Get escape room state from LocalStorage
-    let local_er_state = LocalStorage.getSetting("local_er_state");
-    if(this.validateERState(local_er_state)===false){
-      local_er_state = DEFAULT_ESCAPP_ER_STATE;
+    let localErState = LocalStorage.getSetting("localErState");
+    if(this.validateERState(localErState)===false){
+      localErState = DEFAULT_ESCAPP_ER_STATE;
     }
-    settings.local_er_state = local_er_state;
-    LocalStorage.saveSetting("local_er_state",local_er_state);
+    settings.localErState = localErState;
+    LocalStorage.saveSetting("localErState",localErState);
   };
 
 
@@ -78,7 +85,33 @@ export default function ESCAPP(options){
   //////////////////
 
   this.isSupported = function(){
-    return LocalStorage.isSupported();
+    let isValidBrowser;
+
+    //Use bowser (https://github.com/lancedikson/bowser) to detect browser
+    try {
+      let browser = Bowser.getParser(window.navigator.userAgent);
+      // console.log(browser.getBrowser());
+      isValidBrowser = browser.satisfies(settings.browserRestrictions);
+    } catch(e){
+      isValidBrowser = false;
+    }
+
+    //Check specific features
+    let featuresSupported = LocalStorage.isSupported();
+    
+    return ((isValidBrowser)&&(featuresSupported));
+  };
+
+  this.validate = function(callback){
+    if(this.isSupported() === true){
+      return this.validateUser(callback);
+    } else {
+      return this.displayCustomDialog(I18n.getTrans("i.notsupported_title"),I18n.getTrans("i.notsupported_text"),function(response){
+        if(typeof callback === "function"){
+          callback(false,undefined);
+        }
+      });
+    }
   };
 
   this.validateUser = function(callback){
@@ -86,7 +119,9 @@ export default function ESCAPP(options){
       this.displayUserAuthDialog(true,function(success){
         if(success){
           this.getStateToRestore(function(er_state){
-            callback(er_state);
+            if(typeof callback === "function"){
+              callback(true,er_state);
+            }
           });
         } else {
           this.resetUserCredentials();
@@ -96,7 +131,9 @@ export default function ESCAPP(options){
     } else {
       this.retrieveState(function(success,er_state){
         if(success){
-          callback(er_state);
+          if(typeof callback === "function"){
+            callback(true,er_state);
+          }
         } else {
           this.resetUserCredentials();
           return this.validateUser(callback);
@@ -105,8 +142,22 @@ export default function ESCAPP(options){
     }
   };
 
-  this.displayDialog = function(options){
-    return Dialogs.displayDialog(options);
+  this.displayCustomDialog = function(title,text,callback){
+    let dialogOptions = {title: title, text: text};
+    if(typeof callback === "function"){
+      dialogOptions.closeCallback = function(response){
+        callback(response);
+      }.bind(this);
+    }
+    this.displayDialog(dialogOptions);
+  };
+
+  this.reset = function(callback){
+    this.resetUserCredentials();
+    LocalStorage.clear();
+    if(typeof callback === "function"){
+      callback();
+    }
   };
 
 
@@ -117,7 +168,10 @@ export default function ESCAPP(options){
   this.auth = function(user,callback){
     if((typeof user.email !== "string")||((typeof user.token !== "string")&&(typeof user.password !== "string"))){
       //Invalid params
-      return callback(false);
+      if(typeof callback === "function"){
+        callback(false);
+      }
+      return;
     }
 
     let that = this;
@@ -141,7 +195,7 @@ export default function ESCAPP(options){
       LocalStorage.saveSetting("user", settings.user);
 
       if(that.validateERState(res.erState)){
-        settings.remote_er_state = res.erState;
+        settings.remoteErState = res.erState;
       }
 
       if(typeof callback === "function"){
@@ -180,18 +234,19 @@ export default function ESCAPP(options){
       }
     }).then(res => res.json()).then(function(res){
         if(that.validateERState(res.erState)){
-          settings.remote_er_state = res.erState;
+          settings.remoteErState = res.erState;
         }
-        if(res.code === "OK"){
+        let submitSuccess = (res.code === "OK");
+        if(submitSuccess){
           //Puzzle solved
-          if(settings.local_er_state.puzzlesSolved.indexOf(puzzle_id)===-1){
-            settings.local_er_state.puzzlesSolved.push(puzzle_id);
+          if(settings.localErState.puzzlesSolved.indexOf(puzzle_id)===-1){
+            settings.localErState.puzzlesSolved.push(puzzle_id);
           }
-          callback(true,res);
-        } else {
-          callback(false,res);
+        } 
+        if(typeof callback === "function"){
+          callback(submitSuccess,res);
         }
-      } 
+      }
     );
   };
 
@@ -226,59 +281,68 @@ export default function ESCAPP(options){
       authenthicated: false,
       participation: undefined
     };
-    settings.local_er_state = DEFAULT_ESCAPP_ER_STATE;
-    settings.remote_er_state = undefined;
+    settings.localErState = DEFAULT_ESCAPP_ER_STATE;
+    settings.remoteErState = undefined;
     LocalStorage.removeSetting("user");
   };
 
   this.getStateToRestore = function(callback){
     if(settings.restoreState==="NEVER"){
-      return callback(DEFAULT_ESCAPP_ER_STATE);
+      if(typeof callback === "function"){
+        callback(undefined);
+      }
+      return;
     }
-    let local_er_state = settings.local_er_state;
-    if(this.validateERState(local_er_state)===false){
-      local_er_state = Utils.deepMerge({}, DEFAULT_ESCAPP_ER_STATE);
+    let localErState = settings.localErState;
+    if(this.validateERState(localErState)===false){
+      localErState = Utils.deepMerge({}, DEFAULT_ESCAPP_ER_STATE);
     }
     let remote_state_is_newest = this.isRemoteStateNewest();
-    let er_state_to_restore = (remote_state_is_newest ? settings.remote_er_state : settings.local_er_state);
+    let er_state_to_restore = (remote_state_is_newest ? settings.remoteErState : settings.localErState);
 
     if((settings.restoreState==="AUTO")||(remote_state_is_newest===false)){
       this.beforeRestoreState(er_state_to_restore);
-      return callback(er_state_to_restore);
+      if(typeof callback === "function"){
+        callback(er_state_to_restore);
+      }
+      return;
     }
 
-    //Ask or notify before returning remote_er_state
+    //Ask or notify before returning remoteErState
     this.displayRestoreStateDialog(function(success){
       if(success===false){
-        er_state_to_restore = local_er_state;
+        er_state_to_restore = localErState;
       }
       this.beforeRestoreState(er_state_to_restore);
-      callback(er_state_to_restore);
+      if(typeof callback === "function"){
+        callback(er_state_to_restore);
+      }
     }.bind(this));
   };
 
   this.beforeRestoreState = function(er_state_to_restore){
-    settings.local_er_state = er_state_to_restore;
-    LocalStorage.saveSetting("local_er_state",settings.local_er_state);
-    settings.remote_er_state = undefined;
+    settings.localErState = er_state_to_restore;
+    LocalStorage.saveSetting("localErState",settings.localErState);
+    settings.remoteErState = undefined;
   };
 
   this.isRemoteStateNewest = function(){
-    let local_er_state_valid = this.validateERState(settings.local_er_state);
-    let remote_er_state_valid = this.validateERState(settings.remote_er_state);
+    let localErState_valid = this.validateERState(settings.localErState);
+    let remoteErState_valid = this.validateERState(settings.remoteErState);
 
-    if(remote_er_state_valid===false){
+    if(remoteErState_valid===false){
       return false;
     }
-    if(local_er_state_valid===false){
+    if(localErState_valid===false){
       return true;
     }
-    return (settings.remote_er_state.puzzlesSolved.length > settings.local_er_state.puzzlesSolved.length);
+    return (settings.remoteErState.puzzlesSolved.length > settings.localErState.puzzlesSolved.length);
   };
 
   this.validateERState = function(er_state){
     return ((typeof er_state === "object")&&(er_state.puzzlesSolved instanceof Array));
   };
+
 
   //////////////////
   // UI
@@ -311,10 +375,14 @@ export default function ESCAPP(options){
           if(settings.user.participation !== "PARTICIPANT"){
             //User is authenticated but not a participant
             this.displayUserParticipationErrorDialog(function(){
-              callback(false);
+              if(typeof callback === "function"){
+                callback(false);
+              }
             });
           } else {
-            callback(true);
+            if(typeof callback === "function"){
+              callback(true);
+            }
           }
         } else {
           return this.displayUserAuthDialog(false,callback);
@@ -336,9 +404,11 @@ export default function ESCAPP(options){
         dialogOptions.text = I18n.getTrans("i.participation_error_NOT_A_PARTICIPANT");
         break;
     }
-    dialogOptions.closeCallback = function(response){
-      callback(response);
-    }.bind(this);
+    if(typeof callback === "function"){
+      dialogOptions.closeCallback = function(response){
+        callback(response);
+      }.bind(this);
+    }
     this.displayDialog(dialogOptions);
   };
 
@@ -364,34 +434,32 @@ export default function ESCAPP(options){
       ];
     }
     
-    dialogOptions.closeCallback = function(response){
-      let _response = ((settings.restoreState==="AUTO_NOTIFICATION")||(response.choice==="ok"));
-      callback(_response);
-    }.bind(this);
-
-    this.displayDialog(dialogOptions);
-  };
-
-  this.displayCustomDialog = function(title,text,callback){
-    let dialogOptions = {title: title, text: text};
     if(typeof callback === "function"){
       dialogOptions.closeCallback = function(response){
-        callback(response);
+        let _response = ((settings.restoreState==="AUTO_NOTIFICATION")||(response.choice==="ok"));
+        callback(_response);
       }.bind(this);
     }
+
     this.displayDialog(dialogOptions);
   };
 
-  this.reset = function(callback){
-    this.resetUserCredentials();
-    LocalStorage.clear();
-    if(typeof callback === "function"){
-      callback();
-    }
+  this.displayDialog = function(options){
+    return Dialogs.displayDialog(options);
   };
+
 
   //Initialization
   this.init();
+
+  //Validate after init if autovalidation is enabled
+  if(settings.autovalidate === true){
+    this.validate(settings.initCallback);
+  } else {
+    if(typeof settings.initCallback === "function"){
+      settings.initCallback();
+    }
+  }
 
 };
 

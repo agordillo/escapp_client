@@ -11,8 +11,19 @@ $(document).ready(function(){
 });
 
 let loadEvents = function(){
+	$("#validate").click(function(){
+		escapp.validate(function(success,er_state){
+			if(success===true){
+				console.log("Browser validated and user validated (authenticated, authorized and participation verified)");
+				console.log("State to restore:");
+				console.log(er_state);
+			} else {
+				console.log("Browser not supported");
+			}
+		});
+	});
 	$("#auth").click(function(){
-		escapp.validateUser(function(er_state){
+		escapp.validateUser(function(success,er_state){
 			console.log("User validated (authenticated, authorized and participation verified)");
 			console.log("State to restore:");
 			console.log(er_state);
