@@ -8,6 +8,7 @@
  *
  * @version 0.0.1
  */
+import 'es6-promise';
 import "isomorphic-fetch";
 import Bowser from "bowser";
 import * as Utils from './Utils.js';
@@ -38,7 +39,10 @@ export default function ESCAPP(options){
     I18n: undefined,
     browserRestrictions: {
       "internet explorer": ">10",
+      "chrome": ">41",
+      "firefox": ">38"
     },
+    browserRestrictionsDefault: true,
     initCallback: undefined,
   };
 
@@ -92,8 +96,13 @@ export default function ESCAPP(options){
       let browser = Bowser.getParser(window.navigator.userAgent);
       // console.log(browser.getBrowser());
       isValidBrowser = browser.satisfies(settings.browserRestrictions);
+      if(typeof isValidBrowser === "undefined"){
+        //No rule for the browser has been specified
+        isValidBrowser = settings.browserRestrictionsDefault;
+      }
     } catch(e){
-      isValidBrowser = false;
+      //Browser has not been recognized
+      isValidBrowser = settings.browserRestrictionsDefault;
     }
 
     //Check specific features

@@ -17,5 +17,6 @@ let CONFIG = {
   browserRestrictions: {
     chrome: ">20.1.1432",
   },
+  browserRestrictionsDefault: true,
   autovalidate: false,
 };

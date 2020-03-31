@@ -50,6 +50,7 @@
     "@babel/polyfill": "^7.8.7",
     "bowser": "^2.9.0",
     "core-js": "^3.6.4",
+    "es6-promise": "^4.2.8",
     "isomorphic-fetch": "^2.2.1"
   }
 }
