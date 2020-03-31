@@ -46,6 +46,30 @@ export function getParamsFromUrl(url){
   }
 };
 
+export function addParamToUrl(url,paramName,paramValue){
+  if((typeof url !== "string")||(typeof paramName !== "string")||(typeof paramValue !== "string")){
+    return url;
+  }
+
+  //Remove hash
+  var splitHash = url.split("#");
+  url = splitHash[0];
+
+  var param = paramName+"="+paramValue;
+  if (url.indexOf('?') > -1){
+    url += '&'+param;
+  }else{
+    url += '?'+param;
+  }
+
+  //Add hash (if present)
+  if(splitHash.length>1){
+    url = url + "#" + splitHash[1];
+  }
+  
+  return url;
+};
+
 export function validateEmail(email){
 	if(typeof email !== "string") return false;
 	var regex = /\S+@\S+\.\S+/;

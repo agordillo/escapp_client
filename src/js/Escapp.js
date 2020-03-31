@@ -66,8 +66,8 @@ export default function ESCAPP(options){
     } else {
       //Check URL params
       let URL_params = Utils.getParamsFromCurrentUrl();
-      if((typeof URL_params.email === "string")&&(typeof URL_params.password === "string")||(typeof URL_params.token === "string")){
-        let user = this.getUserCredentials({email: URL_params.email, password: URL_params.password, token: URL_params.token})    
+      let user = this.getUserCredentials({email: URL_params.email, password: URL_params.password, token: URL_params.token});    
+      if(typeof user !== "undefined"){
         settings.user = user;
         settings.user.authenticated = true;
         settings.user.participation = "PARTICIPANT";
@@ -169,13 +169,24 @@ export default function ESCAPP(options){
     }
   };
 
+  this.addUserCredentialsToUrl = function(url){
+    let userCredentials = this.getUserCredentials(settings.user);
+    if(typeof userCredentials === "undefined"){
+      return url;
+    }
+    url = Utils.addParamToUrl(url,"email",userCredentials.email);
+    url = Utils.addParamToUrl(url,"token",userCredentials.token);
+    //Password is never shown on URLs.
+    return url;
+  };
 
   //////////////////
   // Escapp API
   //////////////////
 
   this.auth = function(user,callback){
-    if((typeof user.email !== "string")||((typeof user.token !== "string")&&(typeof user.password !== "string"))){
+    let userCredentials = this.getUserCredentials(user);
+    if(typeof userCredentials === "undefined"){
       //Invalid params
       if(typeof callback === "function"){
         callback(false);
@@ -187,14 +198,14 @@ export default function ESCAPP(options){
     let authUserURL = settings.endpoint + "/auth";
     fetch(authUserURL, {
         "method": "POST",
-        "body": JSON.stringify(this.getUserCredentials(user)),
+        "body": JSON.stringify(userCredentials),
         headers: {
             "Content-type": "application/json",
             "Accept-Language": "es-ES"
         }
     })
     .then(res => res.json()).then(function(res){
-      settings.user = user;
+      settings.user = userCredentials;
       if(typeof res.token === "string"){
         settings.user.token = res.token;
         delete settings.user.password;
@@ -230,10 +241,15 @@ export default function ESCAPP(options){
   };
 
   this.submitPuzzle = function(puzzle_id,solution,options,callback){
+    let userCredentials = this.getUserCredentials(settings.user);
+    if(typeof userCredentials === "undefined"){
+      callback(false,{msg: "Invalid params"});
+    }
     let that = this;
     let submitPuzzleURL = settings.endpoint + "/puzzles/" + puzzle_id + "/submit";
-    let body = this.getUserCredentials(settings.user);
+    let body = userCredentials;
     body.solution = solution;
+    
     fetch(submitPuzzleURL, {
       method: 'POST',
       body: JSON.stringify(body),
@@ -274,6 +290,9 @@ export default function ESCAPP(options){
   //////////////////
 
   this.getUserCredentials = function(user){
+    if((typeof user !== "object")||(typeof user.email !== "string")||((typeof user.token !== "string")&&(typeof user.password !== "string"))){
+      return undefined;
+    }
     let userCredentials = {email: user.email};
     if(typeof user.token === "string"){
       userCredentials.token = user.token;

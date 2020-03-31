@@ -5,9 +5,10 @@ body {
 div.site_wrapper {
 	height: 100%;
 	width: 100%;
+	font-family: Arial, Helvetica, sans-serif;
 }
 
-div.site_wrapper button {
+div.site_wrapper button, div.site_wrapper a {
 	display: block;
 	background-color: #232951;
 	color: white;
@@ -16,4 +17,11 @@ div.site_wrapper button {
 	cursor: pointer;
 	font-size: 15px;
 	margin: 30px 10px;
+	font-weight: 400;
+}
+
+div.site_wrapper a {
+	text-decoration: none;
+	outline: none;
+	width: 150px;
 }

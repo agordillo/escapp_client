@@ -67,4 +67,9 @@ let loadEvents = function(){
 	$("#adata").click(function(){
 		escapp.displayCustomDialog("Not supported","Remote data remove not supported yet");
 	});
+	$("#externalApp").click(function(e){
+		let appUrl = $("#externalApp").attr("href");
+		$("#externalApp").attr("href",escapp.addUserCredentialsToUrl(appUrl));
+
+	});
 }
