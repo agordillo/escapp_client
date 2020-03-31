@@ -13,6 +13,8 @@ export let ESCAPP_LOCALES = {
     "i.auth_password_label":"Password",
 
     "i.participation_error_TOO_LATE":"You are a participant of this escape room but the turn you have signed up for has ended or you have run out of time.",
+    "i.participation_error_NOT_ACTIVE":"You are a participant of this escape room but the turn you have signed up for has not started yet.",
+    "i.participation_error_NOT_STARTED":"You are a participant of this escape room but you need to click on the 'Start' button in the Escapp platform in order to start the escape room.",
     "i.participation_error_NOT_A_PARTICIPANT":"You are not a participant of this escape room.",
 
     "i.restore_title":"Status update",
@@ -36,6 +38,8 @@ export let ESCAPP_LOCALES = {
     "i.auth_password_label":"Contraseña",
 
     "i.participation_error_TOO_LATE":"Eres participante de esta escape room pero el turno al que te has apuntado ha terminado o te has quedado sin tiempo.",
+    "i.participation_error_NOT_ACTIVE":"Eres participante de esta escape room pero el turno al que te has apuntado aún no ha empezado.",
+    "i.participation_error_NOT_STARTED":"Eres participante de esta escape room pero no le has dado al botón de comenzar en la plataforma escapp.",
     "i.participation_error_NOT_A_PARTICIPANT":"No eres participante de esta escape room.",
 
     "i.restore_title":"Actualización de estado",

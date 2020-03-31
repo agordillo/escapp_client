@@ -405,10 +405,19 @@ export default function ESCAPP(options){
   this.displayUserParticipationErrorDialog = function(callback){
     let dialogOptions = {};
     dialogOptions.title = I18n.getTrans("i.generic_error_title");
+
     switch(settings.user.participation){
       case "TOO_LATE":
         dialogOptions.text = I18n.getTrans("i.participation_error_TOO_LATE");
         break;
+      case "NOT_ACTIVE":
+        dialogOptions.text = I18n.getTrans("i.participation_error_NOT_ACTIVE");
+        break;
+      case "NOT_STARTED":
+        dialogOptions.text = I18n.getTrans("i.participation_error_NOT_STARTED");
+        break;
+      case "AUTHOR":
+      case "NOT_A_PARTICIPANT":
       default:
         dialogOptions.text = I18n.getTrans("i.participation_error_NOT_A_PARTICIPANT");
         break;
