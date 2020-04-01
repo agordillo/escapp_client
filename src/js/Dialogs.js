@@ -54,7 +54,7 @@ export function displayDialog(options){
 	}
 
 	$("footer.modal__footer .modal__btn").remove();
-	if((options.buttons instanceof Array)&&(options.buttons.length > 0)){
+	if(options.buttons instanceof Array){
 		for(var j=options.buttons.length-1; j>=0; j--){
 			$("footer.modal__footer").append('<button id="modal-button' + (j+1) + '"class="modal__btn" data-micromodal-close>' + options.buttons[j].label + '</button>');
 			if(typeof options.buttons[j].response === "string"){

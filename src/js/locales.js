@@ -17,6 +17,8 @@ export let ESCAPP_LOCALES = {
     "i.participation_error_NOT_STARTED":"You are a participant of this escape room but you need to click on the 'Start' button in the Escapp platform in order to start the escape room.",
     "i.participation_error_NOT_A_PARTICIPANT":"You are not a participant of this escape room.",
 
+    "i.puzzles_required": "You shouldn't be here. You must complete previous puzzles before accessing this one.",
+
     "i.restore_title":"Status update",
     "i.restore_auto_text":"A newer application status was found on the Escapp server. The application is going to be updated based on this status.",
     "i.restore_request_text":"A newer application status was found on the Escapp server. Do you want to update the application based on this status? If you don't, your application could be in a different state than the rest of your team members.",
@@ -41,6 +43,8 @@ export let ESCAPP_LOCALES = {
     "i.participation_error_NOT_ACTIVE":"Eres participante de esta escape room pero el turno al que te has apuntado aún no ha empezado.",
     "i.participation_error_NOT_STARTED":"Eres participante de esta escape room pero no le has dado al botón de comenzar en la plataforma escapp.",
     "i.participation_error_NOT_A_PARTICIPANT":"No eres participante de esta escape room.",
+
+    "i.puzzles_required": "No deberías estar aquí. Debes completar retos anteriores antes de acceder a este.",
 
     "i.restore_title":"Actualización de estado",
     "i.restore_auto_text":"Se encontró un estado más reciente de la aplicación en el servidor de Escapp. Se va a actualizar la aplicación en base a este estado.",

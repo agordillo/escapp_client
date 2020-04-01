@@ -22,10 +22,21 @@ export default function ESCAPP(options){
 
   //Default options
   let defaults = {
+    initCallback: undefined,
     endpoint: undefined,
     localStorageKey: "ESCAPP",
     imagesPath: "./images/",
     restoreState: "REQUEST_USER", //AUTO, AUTO_NOTIFICATION, REQUEST_USER, NEVER
+    I18n: undefined,
+    browserRestrictions: {
+      "internet explorer": ">10",
+      "chrome": ">41",
+      "firefox": ">38"
+    },
+    browserRestrictionsDefault: true,
+    autovalidate: false,
+    default_puzzle_id: undefined,
+    required_puzzles_ids: undefined,
     user: {
       email: undefined,
       password: undefined,
@@ -35,15 +46,6 @@ export default function ESCAPP(options){
     },
     localErState: undefined,
     remoteErState: undefined,
-    autovalidate: false,
-    I18n: undefined,
-    browserRestrictions: {
-      "internet explorer": ">10",
-      "chrome": ">41",
-      "firefox": ">38"
-    },
-    browserRestrictionsDefault: true,
-    initCallback: undefined,
   };
 
   // Settings merged with defaults and extended options
@@ -66,7 +68,7 @@ export default function ESCAPP(options){
     } else {
       //Check URL params
       let URL_params = Utils.getParamsFromCurrentUrl();
-      let user = this.getUserCredentials({email: URL_params.email, password: URL_params.password, token: URL_params.token});    
+      let user = this.getUserCredentials({email: URL_params.email, token: URL_params.token});    
       if(typeof user !== "undefined"){
         settings.user = user;
         settings.user.authenticated = true;
@@ -127,9 +129,9 @@ export default function ESCAPP(options){
     if((settings.user.authenticated !== true)||(settings.user.participation !== "PARTICIPANT")){
       this.displayUserAuthDialog(true,function(success){
         if(success){
-          this.getStateToRestore(function(er_state){
+          this.validateStateToRestore(function(success,er_state){
             if(typeof callback === "function"){
-              callback(true,er_state);
+              callback(success,er_state);
             }
           });
         } else {
@@ -227,9 +229,9 @@ export default function ESCAPP(options){
   this.retrieveState = function(callback){
     this.auth(settings.user,function(success){
       if((settings.user.authenticated)&&(settings.user.participation==="PARTICIPANT")){
-        this.getStateToRestore(function(er_state){
+        this.validateStateToRestore(function(success,er_state){
           if(typeof callback === "function"){
-            callback(true,er_state);
+            callback(success,er_state);
           }
         });
       } else {
@@ -245,6 +247,13 @@ export default function ESCAPP(options){
     if(typeof userCredentials === "undefined"){
       callback(false,{msg: "Invalid params"});
     }
+    if((typeof puzzle_id === "undefined")&&(typeof settings.default_puzzle_id !== "undefined")){
+      puzzle_id = settings.default_puzzle_id;
+    }
+    if(typeof puzzle_id === "undefined"){
+      callback(false,{msg: "Puzzle id not provided"});
+    }
+
     let that = this;
     let submitPuzzleURL = settings.endpoint + "/puzzles/" + puzzle_id + "/submit";
     let body = userCredentials;
@@ -315,26 +324,21 @@ export default function ESCAPP(options){
     LocalStorage.removeSetting("user");
   };
 
-  this.getStateToRestore = function(callback){
+  this.validateStateToRestore = function(callback){
     if(settings.restoreState==="NEVER"){
-      if(typeof callback === "function"){
-        callback(undefined);
-      }
-      return;
+      return this.validatePreviousPuzzles(undefined,callback);
     }
 
     if(this.validateERState(settings.localErState)===false){
       settings.localErState = Utils.deepMerge({}, DEFAULT_ESCAPP_ER_STATE);
     }
+
     let remote_state_is_newest = this.isRemoteStateNewest();
-    let er_state_to_restore = (remote_state_is_newest ? settings.remoteErState : settings.localErState);
+    let er_state_to_restore = this.getNewestState();
 
     if((settings.restoreState==="AUTO")||(remote_state_is_newest===false)){
       this.beforeRestoreState(er_state_to_restore);
-      if(typeof callback === "function"){
-        callback(er_state_to_restore);
-      }
-      return;
+      return this.validatePreviousPuzzles(er_state_to_restore,callback);
     }
 
     //Ask or notify before returning remoteErState
@@ -343,10 +347,41 @@ export default function ESCAPP(options){
         er_state_to_restore = settings.localErState;
       }
       this.beforeRestoreState(er_state_to_restore);
-      if(typeof callback === "function"){
-        callback(er_state_to_restore);
-      }
+      return this.validatePreviousPuzzles(er_state_to_restore,callback);
     }.bind(this));
+  };
+
+  this.validatePreviousPuzzles = function(erStateToRestore,callback){
+    if((!(settings.required_puzzles_ids instanceof Array))||(settings.required_puzzles_ids.length === 0)){
+      if(typeof callback === "function"){
+        callback(true,erStateToRestore);
+      }
+    } else {
+      //Check requirement
+      let puzzleRequirement = true;
+      let stateToVerifyPuzzleRequirements = this.getNewestState();
+      if(this.validateERState(stateToVerifyPuzzleRequirements)===false){
+        puzzleRequirement = false;
+      } else {
+        for(let i=0; i<settings.required_puzzles_ids.length; i++){
+          if(stateToVerifyPuzzleRequirements.puzzlesSolved.indexOf(settings.required_puzzles_ids[i])===-1){
+            puzzleRequirement = false;
+            break;
+          }
+        }
+      }
+      if(puzzleRequirement===false){
+        this.displayPuzzleRequirementDialog(function(response){
+          if(typeof callback === "function"){
+            callback(false,undefined);
+          }
+        });
+      } else {
+        if(typeof callback === "function"){
+          callback(true,erStateToRestore);
+        }
+      }
+    }
   };
 
   this.beforeRestoreState = function(er_state_to_restore){
@@ -354,6 +389,11 @@ export default function ESCAPP(options){
     LocalStorage.saveSetting("localErState",settings.localErState);
     settings.remoteErState = undefined;
   };
+
+  this.getNewestState = function(){
+    let remote_state_is_newest = this.isRemoteStateNewest();
+    return (remote_state_is_newest ? settings.remoteErState : settings.localErState);
+  }
 
   this.isRemoteStateNewest = function(){
     let localErState_valid = this.validateERState(settings.localErState);
@@ -447,6 +487,14 @@ export default function ESCAPP(options){
         callback(response);
       }.bind(this);
     }
+    this.displayDialog(dialogOptions);
+  };
+
+  this.displayPuzzleRequirementDialog = function(callback){
+    let dialogOptions = {};
+    dialogOptions.title = I18n.getTrans("i.generic_error_title");
+    dialogOptions.text = I18n.getTrans("i.puzzles_required");
+    dialogOptions.buttons = [];
     this.displayDialog(dialogOptions);
   };
 
