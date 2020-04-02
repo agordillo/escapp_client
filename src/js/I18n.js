@@ -13,8 +13,8 @@ export function init(options){
   //Default options
   let defaults = {
     locale: undefined,
-    default_locale: "en",
-    available_locales: ["es","en"],
+    defaultLocale: "en",
+    availableLocales: ["es","en"],
   };
 
   // Settings merged with defaults and extended options
@@ -25,8 +25,8 @@ export function init(options){
   }
 
   // Set default locale
-  if((typeof settings.available_locales !== "undefined") && (settings.available_locales instanceof Array) && (settings.available_locales.length > 0)){
-    settings.default_locale = settings.available_locales[0]; // Default language
+  if((typeof settings.availableLocales !== "undefined") && (settings.availableLocales instanceof Array) && (settings.availableLocales.length > 0)){
+    settings.defaultLocale = settings.availableLocales[0]; // Default language
   }
 
   // Set locale
@@ -35,7 +35,7 @@ export function init(options){
     if(isValidLanguage(uL)){
       settings.locale = uL;
     } else {
-      settings.locale = settings.default_locale;
+      settings.locale = settings.defaultLocale;
     }
   }
 }
@@ -61,7 +61,7 @@ function getUserLanguage(){
 }
 
 function isValidLanguage(language){
-  return ((typeof language === "string") && (settings.available_locales.indexOf(language) !== -1));
+  return ((typeof language === "string") && (settings.availableLocales.indexOf(language) !== -1));
 }
 
 export function getTrans(s, params){
@@ -71,8 +71,8 @@ export function getTrans(s, params){
   }
 
   // Default language
-  if((settings.locale !== settings.default_locale) && (typeof LOCALES[settings.default_locale] !== "undefined") && (typeof LOCALES[settings.default_locale][s] === "string")){
-    return getTransWithParams(LOCALES[settings.default_locale][s], params);
+  if((settings.locale !== settings.defaultLocale) && (typeof LOCALES[settings.defaultLocale] !== "undefined") && (typeof LOCALES[settings.defaultLocale][s] === "string")){
+    return getTransWithParams(LOCALES[settings.defaultLocale][s], params);
   }
 
   return undefined;

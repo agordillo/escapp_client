@@ -6,12 +6,12 @@ let LOCALES = {
 
 let CONFIG = {
   endpoint:"https://escapp.dit.upm.es/api/escapeRooms/id",
-  local_storage_key:"LocalStorageKey",
+  localStorageKey:"LocalStorageKey",
   imagesPath:"./src/images/",
   I18n: {
     locale: "es",
-    default_locale: "es",
-    available_locales: ["es","en"],
+    defaultLocale: "es",
+    availableLocales: ["es","en"],
     locales: LOCALES
   },
   browserRestrictions: {
@@ -19,5 +19,6 @@ let CONFIG = {
   },
   browserRestrictionsDefault: true,
   autovalidate: false,
-  required_puzzles_ids:[2,3],
+  requiredPuzzlesIds:[2,3],
+  forceValidation: true,
 };

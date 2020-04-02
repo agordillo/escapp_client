@@ -157,8 +157,7 @@ footer .modal__btn {
   will-change: transform;
 }
 
-
-.micromodal-slide.require-input.invalid-input button.modal__btn {
+.micromodal-slide.require-input.invalid-input button.modal__btn:not(.ignore_input_validation) {
   background: gray;
   cursor: default;
   opacity: 0.5;

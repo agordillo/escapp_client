@@ -60,6 +60,9 @@ export function displayDialog(options){
 			if(typeof options.buttons[j].response === "string"){
 				$("#modal-button" + (j+1)).attr("response",options.buttons[j].response);
 			}
+			if(options.buttons[j].ignoreInputs===true){
+				$("#modal-button" + (j+1)).addClass("ignore_input_validation");
+			}
 		}
 	} else {
 		//Default button

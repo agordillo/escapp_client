@@ -35,8 +35,9 @@ export default function ESCAPP(options){
     },
     browserRestrictionsDefault: true,
     autovalidate: false,
-    default_puzzle_id: undefined,
-    required_puzzles_ids: undefined,
+    defaultPuzzleId: undefined,
+    requiredPuzzlesIds: undefined,
+    forceValidation: true,
     user: {
       email: undefined,
       password: undefined,
@@ -46,6 +47,7 @@ export default function ESCAPP(options){
     },
     localErState: undefined,
     remoteErState: undefined,
+    puzzlesRequirements: true,
   };
 
   // Settings merged with defaults and extended options
@@ -79,7 +81,7 @@ export default function ESCAPP(options){
     //Get escape room state from LocalStorage
     let localErState = LocalStorage.getSetting("localErState");
     if(this.validateERState(localErState)===false){
-      localErState = DEFAULT_ESCAPP_ER_STATE;
+      localErState = Utils.deepMerge({}, DEFAULT_ESCAPP_ER_STATE);
     }
     settings.localErState = localErState;
     LocalStorage.saveSetting("localErState",settings.localErState);
@@ -128,22 +130,18 @@ export default function ESCAPP(options){
   this.validateUser = function(callback){
     if((settings.user.authenticated !== true)||(settings.user.participation !== "PARTICIPANT")){
       this.displayUserAuthDialog(true,function(success){
-        if(success){
-          this.validateStateToRestore(function(success,er_state){
-            if(typeof callback === "function"){
-              callback(success,er_state);
-            }
-          });
+        if((success)||(settings.forceValidation===false)){
+          return this.validateUserAfterAuth(callback);
         } else {
           this.resetUserCredentials();
           return this.validateUser(callback);
         }
       }.bind(this));
     } else {
-      this.retrieveState(function(success,er_state){
-        if(success){
+      this.retrieveState(function(success,erState){
+        if((success)||(settings.forceValidation===false)){
           if(typeof callback === "function"){
-            callback(true,er_state);
+            callback(success,erState);
           }
         } else {
           this.resetUserCredentials();
@@ -228,12 +226,8 @@ export default function ESCAPP(options){
 
   this.retrieveState = function(callback){
     this.auth(settings.user,function(success){
-      if((settings.user.authenticated)&&(settings.user.participation==="PARTICIPANT")){
-        this.validateStateToRestore(function(success,er_state){
-          if(typeof callback === "function"){
-            callback(success,er_state);
-          }
-        });
+      if((success)&&(settings.user.authenticated)&&(settings.user.participation==="PARTICIPANT")){
+        return this.validateUserAfterAuth(callback);
       } else {
         if(typeof callback === "function"){
           callback(false,undefined);
@@ -242,20 +236,23 @@ export default function ESCAPP(options){
     }.bind(this));
   };
 
-  this.submitPuzzle = function(puzzle_id,solution,options,callback){
+  this.submitPuzzle = function(puzzleId,solution,options,callback){
     let userCredentials = this.getUserCredentials(settings.user);
     if(typeof userCredentials === "undefined"){
-      callback(false,{msg: "Invalid params"});
+      return callback(false,{msg: "Invalid params"});
     }
-    if((typeof puzzle_id === "undefined")&&(typeof settings.default_puzzle_id !== "undefined")){
-      puzzle_id = settings.default_puzzle_id;
+    if((typeof puzzleId === "undefined")&&(typeof settings.defaultPuzzleId !== "undefined")){
+      puzzleId = settings.defaultPuzzleId;
     }
-    if(typeof puzzle_id === "undefined"){
-      callback(false,{msg: "Puzzle id not provided"});
+    if(typeof puzzleId === "undefined"){
+      return callback(false,{msg: "Puzzle id not provided"});
+    }
+    if(settings.puzzlesRequirements !== true){
+      return callback(false,{msg: "Invalid puzzle requirements"});
     }
 
     let that = this;
-    let submitPuzzleURL = settings.endpoint + "/puzzles/" + puzzle_id + "/submit";
+    let submitPuzzleURL = settings.endpoint + "/puzzles/" + puzzleId + "/submit";
     let body = userCredentials;
     body.solution = solution;
     
@@ -273,9 +270,11 @@ export default function ESCAPP(options){
         let submitSuccess = (res.code === "OK");
         if(submitSuccess){
           //Puzzle solved
-          if(settings.localErState.puzzlesSolved.indexOf(puzzle_id)===-1){
-            settings.localErState.puzzlesSolved.push(puzzle_id);
-            LocalStorage.saveSetting("localErState",settings.localErState);
+          if(that.validateERState(settings.localErState)){
+            if(settings.localErState.puzzlesSolved.indexOf(puzzleId)===-1){
+              settings.localErState.puzzlesSolved.push(puzzleId);
+              LocalStorage.saveSetting("localErState",settings.localErState);
+            }
           }
         } 
         if(typeof callback === "function"){
@@ -324,53 +323,41 @@ export default function ESCAPP(options){
     LocalStorage.removeSetting("user");
   };
 
-  this.validateStateToRestore = function(callback){
-    if(settings.restoreState==="NEVER"){
-      return this.validatePreviousPuzzles(undefined,callback);
-    }
-
-    if(this.validateERState(settings.localErState)===false){
-      settings.localErState = Utils.deepMerge({}, DEFAULT_ESCAPP_ER_STATE);
-    }
-
-    let remote_state_is_newest = this.isRemoteStateNewest();
-    let er_state_to_restore = this.getNewestState();
-
-    if((settings.restoreState==="AUTO")||(remote_state_is_newest===false)){
-      this.beforeRestoreState(er_state_to_restore);
-      return this.validatePreviousPuzzles(er_state_to_restore,callback);
-    }
-
-    //Ask or notify before returning remoteErState
-    this.displayRestoreStateDialog(function(success){
-      if(success===false){
-        er_state_to_restore = settings.localErState;
-      }
-      this.beforeRestoreState(er_state_to_restore);
-      return this.validatePreviousPuzzles(er_state_to_restore,callback);
+  this.validateUserAfterAuth = function(callback){
+    this.validatePreviousPuzzles(function(success){
+        if((success)||(settings.forceValidation===false)){
+          this.validateStateToRestore(function(erState){
+            if(typeof callback === "function"){
+              callback(success,erState);
+            }
+          });
+        } else {
+          if(typeof callback === "function"){
+            callback(false,undefined);
+          }
+        }
     }.bind(this));
   };
 
-  this.validatePreviousPuzzles = function(erStateToRestore,callback){
-    if((!(settings.required_puzzles_ids instanceof Array))||(settings.required_puzzles_ids.length === 0)){
+  this.validatePreviousPuzzles = function(callback){
+    if((!(settings.requiredPuzzlesIds instanceof Array))||(settings.requiredPuzzlesIds.length === 0)){
       if(typeof callback === "function"){
-        callback(true,erStateToRestore);
+        callback(true);
       }
     } else {
       //Check requirement
-      let puzzleRequirement = true;
       let stateToVerifyPuzzleRequirements = this.getNewestState();
       if(this.validateERState(stateToVerifyPuzzleRequirements)===false){
-        puzzleRequirement = false;
+        settings.puzzlesRequirements = false;
       } else {
-        for(let i=0; i<settings.required_puzzles_ids.length; i++){
-          if(stateToVerifyPuzzleRequirements.puzzlesSolved.indexOf(settings.required_puzzles_ids[i])===-1){
-            puzzleRequirement = false;
+        for(let i=0; i<settings.requiredPuzzlesIds.length; i++){
+          if(stateToVerifyPuzzleRequirements.puzzlesSolved.indexOf(settings.requiredPuzzlesIds[i])===-1){
+            settings.puzzlesRequirements = false;
             break;
           }
         }
       }
-      if(puzzleRequirement===false){
+      if(settings.puzzlesRequirements===false){
         this.displayPuzzleRequirementDialog(function(response){
           if(typeof callback === "function"){
             callback(false,undefined);
@@ -378,38 +365,72 @@ export default function ESCAPP(options){
         });
       } else {
         if(typeof callback === "function"){
-          callback(true,erStateToRestore);
+          callback(true);
         }
       }
     }
   };
 
-  this.beforeRestoreState = function(er_state_to_restore){
-    settings.localErState = er_state_to_restore;
-    LocalStorage.saveSetting("localErState",settings.localErState);
-    settings.remoteErState = undefined;
+  this.validateStateToRestore = function(callback){
+    if(settings.restoreState==="NEVER"){
+      if(typeof callback === "function"){
+        callback(undefined);
+      }
+      return;
+    }
+
+    let remoteStateIsNewest = this.isRemoteStateNewest();
+    let erStateToRestore = this.getNewestState();
+
+    if((settings.restoreState==="AUTO")||(remoteStateIsNewest===false)){
+      this.updateErStates(erStateToRestore);
+      if(typeof callback === "function"){
+        callback(erStateToRestore);
+      }
+      return;
+    }
+
+    //Ask or notify before returning remoteErState
+    this.displayRestoreStateDialog(function(success){
+      if(success===false){
+        erStateToRestore = settings.localErState;
+      }
+      this.updateErStates(erStateToRestore);
+      if(typeof callback === "function"){
+        callback(erStateToRestore);
+      }
+      return;
+    }.bind(this));
+  };
+
+  this.updateErStates = function(erStateToRestore){
+    if(this.validateERState(erStateToRestore)){
+      settings.localErState = erStateToRestore;
+      LocalStorage.saveSetting("localErState",settings.localErState);
+      settings.remoteErState = undefined;
+    }
   };
 
   this.getNewestState = function(){
-    let remote_state_is_newest = this.isRemoteStateNewest();
-    return (remote_state_is_newest ? settings.remoteErState : settings.localErState);
+    let remoteStateIsNewest = this.isRemoteStateNewest();
+    return (remoteStateIsNewest ? settings.remoteErState : settings.localErState);
   }
 
   this.isRemoteStateNewest = function(){
-    let localErState_valid = this.validateERState(settings.localErState);
-    let remoteErState_valid = this.validateERState(settings.remoteErState);
+    let localErStateValid = this.validateERState(settings.localErState);
+    let remoteErStateValid = this.validateERState(settings.remoteErState);
 
-    if(remoteErState_valid===false){
+    if(remoteErStateValid===false){
       return false;
     }
-    if(localErState_valid===false){
+    if(localErStateValid===false){
       return true;
     }
     return (settings.remoteErState.puzzlesSolved.length > settings.localErState.puzzlesSolved.length);
   };
 
-  this.validateERState = function(er_state){
-    return ((typeof er_state === "object")&&(er_state.puzzlesSolved instanceof Array));
+  this.validateERState = function(erState){
+    return ((typeof erState === "object")&&(erState.puzzlesSolved instanceof Array));
   };
 
 
@@ -436,27 +457,37 @@ export default function ESCAPP(options){
         "label":I18n.getTrans("i.auth_password_label"),
       },
     ];
-    dialogOptions.closeCallback = function(response){
-      let user = {email:response.inputs[0], password:response.inputs[1]};
-      this.auth(user,function(success){
-        if(settings.user.authenticated === true){
-          // User authentication succesfull
-          if(settings.user.participation !== "PARTICIPANT"){
-            //User is authenticated but not a participant
-            this.displayUserParticipationErrorDialog(function(){
+    dialogOptions.buttons = [{"response":"ok","label":I18n.getTrans("i.button_ok")}];
+    if(settings.forceValidation===false){
+      dialogOptions.buttons.push({"response":"cancel","label":I18n.getTrans("i.button_nok"),"ignoreInputs":true});
+    }
+    dialogOptions.closeCallback = function(dialogResponse){
+      if((settings.forceValidation!==false)||(dialogResponse.choice==="ok")){
+        let user = {email:dialogResponse.inputs[0], password:dialogResponse.inputs[1]};
+        this.auth(user,function(success){
+          if(settings.user.authenticated === true){
+            // User authentication succesfull
+            if(settings.user.participation !== "PARTICIPANT"){
+              //User is authenticated but not a participant
+              this.displayUserParticipationErrorDialog(function(){
+                if(typeof callback === "function"){
+                  callback(false);
+                }
+              });
+            } else {
               if(typeof callback === "function"){
-                callback(false);
+                callback(true);
               }
-            });
-          } else {
-            if(typeof callback === "function"){
-              callback(true);
             }
+          } else {
+            return this.displayUserAuthDialog(false,callback);
           }
-        } else {
-          return this.displayUserAuthDialog(false,callback);
+        }.bind(this));
+      } else {
+        if(typeof callback === "function"){
+          callback(false);
         }
-      }.bind(this));
+      }
     }.bind(this);
 
     this.displayDialog(dialogOptions);
@@ -495,6 +526,14 @@ export default function ESCAPP(options){
     dialogOptions.title = I18n.getTrans("i.generic_error_title");
     dialogOptions.text = I18n.getTrans("i.puzzles_required");
     dialogOptions.buttons = [];
+    if(settings.forceValidation===false){
+      dialogOptions.buttons.push({"response":"ok","label":I18n.getTrans("i.button_ok")});
+    }
+    if(typeof callback === "function"){
+      dialogOptions.closeCallback = function(dialogResponse){
+        callback(dialogResponse);
+      }.bind(this);
+    }
     this.displayDialog(dialogOptions);
   };
 
@@ -521,9 +560,9 @@ export default function ESCAPP(options){
     }
     
     if(typeof callback === "function"){
-      dialogOptions.closeCallback = function(response){
-        let _response = ((settings.restoreState==="AUTO_NOTIFICATION")||(response.choice==="ok"));
-        callback(_response);
+      dialogOptions.closeCallback = function(dialogResponse){
+        let response = ((settings.restoreState==="AUTO_NOTIFICATION")||(dialogResponse.choice==="ok"));
+        callback(response);
       }.bind(this);
     }
 

@@ -106,7 +106,11 @@ export default (function() {
 
         if(typeof this.config.buttons !== "undefined"){
           //Response attribute of the target element
-          dialogResponse.choice = event.target.getAttribute("response");
+          if((typeof event !== "undefined")&&(typeof event.target !== "undefined")){
+            dialogResponse.choice = event.target.getAttribute("response");
+          } else {
+            dialogResponse.choice = false;
+          }
         } else {
           dialogResponse.choice = true;
         }
@@ -171,8 +175,8 @@ export default (function() {
       }
 
       onClick(event) {
-        if (event.target.hasAttribute(this.config.closeTrigger)) {
-          if(this.validateInputs()){
+        if (event.target.hasAttribute(this.config.closeTrigger)){
+          if((event.target.classList.contains("ignore_input_validation"))||(this.validateInputs())){
             this.closeModal(event);
           }
           event.preventDefault();
