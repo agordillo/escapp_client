@@ -35,7 +35,7 @@ export default function ESCAPP(options){
     },
     browserRestrictionsDefault: true,
     autovalidate: false,
-    defaultPuzzleId: undefined,
+    appPuzzleIds: undefined,
     requiredPuzzlesIds: undefined,
     forceValidation: true,
     user: {
@@ -241,8 +241,8 @@ export default function ESCAPP(options){
     if(typeof userCredentials === "undefined"){
       return callback(false,{msg: "Invalid params"});
     }
-    if((typeof puzzleId === "undefined")&&(typeof settings.defaultPuzzleId !== "undefined")){
-      puzzleId = settings.defaultPuzzleId;
+    if((typeof puzzleId === "undefined")&&(settings.appPuzzleIds instanceof Array)&&(settings.appPuzzleIds.length === 1)){
+      puzzleId = settings.appPuzzleIds[0];
     }
     if(typeof puzzleId === "undefined"){
       return callback(false,{msg: "Puzzle id not provided"});
@@ -379,7 +379,12 @@ export default function ESCAPP(options){
       return;
     }
 
-    let remoteStateIsNewest = this.isRemoteStateNewest();
+    let remoteStateIsNewest;
+    if((settings.appPuzzleIds instanceof Array)&&(settings.appPuzzleIds.length > 0)){
+      remoteStateIsNewest = this.isRemoteStateNewestForApp();
+    } else {
+      remoteStateIsNewest = this.isRemoteStateNewest();
+    }
     let erStateToRestore = this.getNewestState();
 
     if((settings.restoreState==="AUTO")||(remoteStateIsNewest===false)){
@@ -412,11 +417,10 @@ export default function ESCAPP(options){
   };
 
   this.getNewestState = function(){
-    let remoteStateIsNewest = this.isRemoteStateNewest();
-    return (remoteStateIsNewest ? settings.remoteErState : settings.localErState);
+    return (this.isRemoteStateNewest() ? settings.remoteErState : settings.localErState);
   }
 
-  this.isRemoteStateNewest = function(){
+  this.isRemoteStateNewest = function(appScope){
     let localErStateValid = this.validateERState(settings.localErState);
     let remoteErStateValid = this.validateERState(settings.remoteErState);
 
@@ -426,7 +430,34 @@ export default function ESCAPP(options){
     if(localErStateValid===false){
       return true;
     }
-    return (settings.remoteErState.puzzlesSolved.length > settings.localErState.puzzlesSolved.length);
+
+    if(appScope===true){
+      if((settings.appPuzzleIds instanceof Array)&&(settings.appPuzzleIds.length > 0)){
+        //Filter
+        let _localErState = Utils.deepMerge({},settings.localErState);
+        _localErState.puzzlesSolved = _localErState.puzzlesSolved.filter(puzzle_id => settings.appPuzzleIds.indexOf(puzzle_id)!==-1);
+        let _remoteErState = Utils.deepMerge({},settings.remoteErState);
+        _remoteErState.puzzlesSolved = _remoteErState.puzzlesSolved.filter(puzzle_id => settings.appPuzzleIds.indexOf(puzzle_id)!==-1);
+        return this.isStateNewestThan(_remoteErState,_localErState);
+      }
+    }
+
+    return this.isStateNewestThan(settings.remoteErState,settings.localErState);
+  };
+
+  this.isStateNewestThan = function(erStateA,erStateB){
+    if(erStateA.puzzlesSolved.length === 0){
+      return false;
+    }
+    if(erStateB.puzzlesSolved.length === 0){
+      return true;
+    }
+    //Current version assumes that the ER has a linear structure of puzzles.
+    return (erStateA.puzzlesSolved.length > erStateB.puzzlesSolved.length);
+  };
+
+  this.isRemoteStateNewestForApp = function(){
+    return this.isRemoteStateNewest(true);
   };
 
   this.validateERState = function(erState){

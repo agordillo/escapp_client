@@ -19,6 +19,7 @@ let CONFIG = {
   },
   browserRestrictionsDefault: true,
   autovalidate: false,
+  puzzleId: 2,
   requiredPuzzlesIds:[2,3],
   forceValidation: true,
 };
