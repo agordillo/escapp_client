@@ -379,20 +379,18 @@ export default function ESCAPP(options){
       return;
     }
 
-    let remoteStateIsNewest;
-    if((settings.appPuzzleIds instanceof Array)&&(settings.appPuzzleIds.length > 0)){
-      remoteStateIsNewest = this.isRemoteStateNewestForApp();
-    } else {
-      remoteStateIsNewest = this.isRemoteStateNewest();
-    }
+    let remoteStateIsNewest = this.isRemoteStateNewest();
     let erStateToRestore = this.getNewestState();
 
     if((settings.restoreState==="AUTO")||(remoteStateIsNewest===false)){
-      this.updateErStates(erStateToRestore);
-      if(typeof callback === "function"){
-        callback(erStateToRestore);
+      return this.updateErStates(erStateToRestore,callback);
+    }
+
+    if((settings.appPuzzleIds instanceof Array)&&(settings.appPuzzleIds.length > 0)){
+      if(this.isRemoteStateNewestForApp()===false){
+        //State is new but not for this app. Prevent dialog, but update.
+        return this.updateErStates(erStateToRestore,callback);
       }
-      return;
     }
 
     //Ask or notify before returning remoteErState
@@ -400,19 +398,18 @@ export default function ESCAPP(options){
       if(success===false){
         erStateToRestore = settings.localErState;
       }
-      this.updateErStates(erStateToRestore);
-      if(typeof callback === "function"){
-        callback(erStateToRestore);
-      }
-      return;
+      return this.updateErStates(erStateToRestore,callback);
     }.bind(this));
   };
 
-  this.updateErStates = function(erStateToRestore){
+  this.updateErStates = function(erStateToRestore,callback){
     if(this.validateERState(erStateToRestore)){
       settings.localErState = erStateToRestore;
       LocalStorage.saveSetting("localErState",settings.localErState);
       settings.remoteErState = undefined;
+    }
+    if(typeof callback === "function"){
+      callback(erStateToRestore);
     }
   };
 
