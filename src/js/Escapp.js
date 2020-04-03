@@ -119,7 +119,7 @@ export default function ESCAPP(options){
     if(this.isSupported() === true){
       return this.validateUser(callback);
     } else {
-      return this.displayCustomDialog(I18n.getTrans("i.notsupported_title"),I18n.getTrans("i.notsupported_text"),function(response){
+      return this.displayCustomEscappDialog(I18n.getTrans("i.notsupported_title"),I18n.getTrans("i.notsupported_text"),{},function(response){
         if(typeof callback === "function"){
           callback(false,undefined);
         }
@@ -151,18 +151,13 @@ export default function ESCAPP(options){
     }
   };
 
-  this.displayCustomDialog = function(title,text,callback){
-    let dialogOptions = {title: title, text: text};
-    if(typeof callback === "function"){
-      dialogOptions.closeCallback = function(response){
-        callback(response);
-      }.bind(this);
-    }
-    this.displayDialog(dialogOptions);
+  this.displayCustomEscappDialog = function(title,text,extraOptions,callback){
+    let dialogOptions = Utils.deepMerge((extraOptions || {}),{escapp: true});
+    this.displayCustomDialog(title,text,dialogOptions,callback);
   };
 
   this.displayPuzzleDialog = function(title,text,extraOptions,callback){
-    let dialogOptions = {title: title, text: text, puzzle: true};
+    let dialogOptions = {escapp: false, icon: "lock"};
     dialogOptions.inputs = [
       {
         "type":"text",
@@ -188,6 +183,19 @@ export default function ESCAPP(options){
         }
         callback(dialogResponse);
       }
+    }
+    if(typeof extraOptions === "object"){
+      dialogOptions = Object.assign(dialogOptions,extraOptions);
+    }
+    this.displayCustomDialog(title,text,dialogOptions,callback);
+  };
+
+  this.displayCustomDialog = function(title,text,extraOptions,callback){
+    let dialogOptions = {title: title, text: text, escapp: false, icon: undefined};
+    if(typeof callback === "function"){
+      dialogOptions.closeCallback = function(response){
+        callback(response);
+      }.bind(this);
     }
     if(typeof extraOptions === "object"){
       dialogOptions = Object.assign(dialogOptions,extraOptions);
@@ -632,6 +640,7 @@ export default function ESCAPP(options){
   };
 
   this.displayDialog = function(options){
+    options = Utils.deepMerge({escapp:true},(options || {}));
     return Dialogs.displayDialog(options);
   };
 

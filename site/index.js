@@ -51,8 +51,13 @@ let loadEvents = function(){
 			console.log(res);
 		});
 	});
+	$("#cedialog").click(function(){
+		escapp.displayCustomEscappDialog("Dialog title","Content of the escapp dialog",{},function(){
+			//On close dialog callback
+		});
+	});
 	$("#cdialog").click(function(){
-		escapp.displayCustomDialog("Dialog title","Content of the dialog",function(){
+		escapp.displayCustomDialog("Dialog title","Content of the custom dialog",{},function(){
 			//On close dialog callback
 		});
 	});

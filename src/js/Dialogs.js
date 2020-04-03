@@ -42,15 +42,29 @@ export function displayDialog(options){
 	$("#modal-content p.content").html(options.text);
 	$(".modal-input").remove();
 
-	//Logo
-	let imgClass = ((options.puzzle !== true) ? "logo" : "lock");
-	$("div.modal__container img.dialog_corner." + imgClass).show();
-	$("div.modal__container img.dialog_corner:not(." + imgClass + ")").hide();
+	//Corner img
+	let dialogImg;
+	if(options.escapp !== false){
+		dialogImg = "logo";
+	} else {
+		let dialogImgs = ["logo","lock"];
+		let dialogImgIndex = ["logo","lock"].indexOf(options.icon);
+		if(dialogImgIndex !== -1){
+			dialogImg = dialogImgs[dialogImgIndex];
+		}
+	}
+
+	if(typeof dialogImg === "undefined"){
+		$("div.modal__container img.dialog_corner").hide();
+	} else {
+		$("div.modal__container img.dialog_corner." + dialogImg).show();
+		$("div.modal__container img.dialog_corner:not(." + dialogImg + ")").hide();
+	}
 
 	//Inputs
 	if((options.inputs instanceof Array)&&(options.inputs.length > 0)){
 		for(var i=0; i<options.inputs.length; i++){
-			$("#modal-content").append('<p><input id="modal-input' + (i+1) + '" class="modal-input" type="text"/></p>');
+			$("#modal-content").append('<p><input id="modal-input' + (i+1) + '" class="modal-input" type="text" spellcheck="false"/></p>');
 			if(typeof options.inputs[i].type === "string"){
 				$("#modal-input" + (i+1)).attr("type",options.inputs[i].type);
 			}
@@ -78,6 +92,13 @@ export function displayDialog(options){
 	} else {
 		//Default button
 		$("footer.modal__footer").append('<button class="modal__btn" data-micromodal-close>' + I18n.getTrans("i.button_ok") + '</button>');
+	}
+
+	//Classes
+	if(options.escapp !== false){
+		$("#modal").addClass("escapp_dialog");
+	} else {
+		$("#modal").removeClass("escapp_dialog");
 	}
 
 	MicroModal.show('modal', {
