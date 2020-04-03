@@ -76,6 +76,10 @@ export function validateEmail(email){
 	return regex.test(email);
 };
 
+export function validateString(str){
+  return ((typeof str === "string")&&(str.trim()!==""));
+};
+
 export function debug(msg){
   if(typeof msg === "object"){
     console.log("ESCAPP: [Object]");

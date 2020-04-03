@@ -161,6 +161,40 @@ export default function ESCAPP(options){
     this.displayDialog(dialogOptions);
   };
 
+  this.displayPuzzleDialog = function(title,text,extraOptions,callback){
+    let dialogOptions = {title: title, text: text, puzzle: true};
+    dialogOptions.inputs = [
+      {
+        "type":"text",
+        "autocomplete":"off",
+        "validate":function(solution){return Utils.validateString(solution)},
+      }
+    ];
+    dialogOptions.buttons = [
+      {
+        "response":"ok",
+        "label":I18n.getTrans("i.button_ok"),
+      },
+      {
+        "response":"cancel",
+        "label":I18n.getTrans("i.button_nok"),
+        "ignoreInputs":true,
+      },
+    ];
+    if(typeof callback === "function"){
+      dialogOptions.closeCallback = function(dialogResponse){
+        if((dialogResponse.inputs instanceof Array)&&(dialogResponse.inputs.length === 1)){
+          dialogResponse.value = dialogResponse.inputs[0];
+        }
+        callback(dialogResponse);
+      }
+    }
+    if(typeof extraOptions === "object"){
+      dialogOptions = Object.assign(dialogOptions,extraOptions);
+    }
+    this.displayDialog(dialogOptions);
+  };
+
   this.reset = function(callback){
     this.resetUserCredentials();
     LocalStorage.clear();

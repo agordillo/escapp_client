@@ -56,6 +56,18 @@ let loadEvents = function(){
 			//On close dialog callback
 		});
 	});
+	$("#pdialog").click(function(){
+		let dialogOptions = {};
+		// dialogOptions.inputs = [{"type":"password"}];
+		escapp.displayPuzzleDialog("Puzzle title","Request puzzle solution",dialogOptions,function(dialogResponse){
+			//On close dialog callback
+			if(dialogResponse.choice === "ok"){
+				console.log("Puzzle solution: " + dialogResponse.value);
+			} else {
+				console.log("No puzzle solution was specified");
+			}
+		});
+	});
 	$("#ldata").click(function(){
 		escapp.reset(function(){
 			console.log("Local data removed");

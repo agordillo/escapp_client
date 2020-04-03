@@ -14,7 +14,8 @@ export function init(options){
 	imagesPath = options.imagesPath || "/assets/images/";
     let modalHTMLcode = '<div class="modal micromodal-slide" id="modal" aria-hidden="true"><div class="modal__overlay" tabIndex="-1"><div class="modal__container" role="dialog" aria-modal="true"><header class="modal__header"><h2 class="modal__title" id="modal-title"></h2></header><main class="modal__content" id="modal-content"><p class="content"></p></main><footer class="modal__footer"></footer></div></div>';
     $("body").prepend(modalHTMLcode);
-    $("#modal div.modal__container").prepend('<img class="escapp_img" src="' + imagesPath + 'escapp_logo_dark.png"/>');
+    $("#modal div.modal__container").prepend('<img class="dialog_corner logo" src="' + imagesPath + 'escapp_logo_dark.png"/>');
+    $("#modal div.modal__container").prepend('<img class="dialog_corner lock" src="' + imagesPath + 'lock.svg"/>')
 	MicroModal.init({
 	  disableScroll: true,
 	  disableFocus: false,
@@ -41,6 +42,12 @@ export function displayDialog(options){
 	$("#modal-content p.content").html(options.text);
 	$(".modal-input").remove();
 
+	//Logo
+	let imgClass = ((options.puzzle !== true) ? "logo" : "lock");
+	$("div.modal__container img.dialog_corner." + imgClass).show();
+	$("div.modal__container img.dialog_corner:not(." + imgClass + ")").hide();
+
+	//Inputs
 	if((options.inputs instanceof Array)&&(options.inputs.length > 0)){
 		for(var i=0; i<options.inputs.length; i++){
 			$("#modal-content").append('<p><input id="modal-input' + (i+1) + '" class="modal-input" type="text"/></p>');
@@ -50,9 +57,13 @@ export function displayDialog(options){
 			if(typeof options.inputs[i].label === "string"){
 				$("#modal-input" + (i+1)).attr("placeholder",options.inputs[i].label);
 			}
+			if(typeof options.inputs[i].autocomplete === "string"){
+				$("#modal-input" + (i+1)).attr("autocomplete",options.inputs[i].autocomplete);
+			}
 		}
 	}
 
+	//Buttons
 	$("footer.modal__footer .modal__btn").remove();
 	if(options.buttons instanceof Array){
 		for(var j=options.buttons.length-1; j>=0; j--){
