@@ -97,8 +97,10 @@ export function displayDialog(options){
 	//Classes
 	if(options.escapp !== false){
 		$("#modal").addClass("escapp_dialog");
+		$("#modal").removeClass("escapp_custom_dialog");
 	} else {
 		$("#modal").removeClass("escapp_dialog");
+		$("#modal").addClass("escapp_custom_dialog");
 	}
 
 	MicroModal.show('modal', {
