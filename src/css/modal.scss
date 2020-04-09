@@ -1,8 +1,8 @@
-.modal {
+.escapp-modal {
   font-family: -apple-system,BlinkMacSystemFont,avenir next,avenir,helvetica neue,helvetica,ubuntu,roboto,noto,segoe ui,arial,sans-serif;
 }
 
-.modal__overlay {
+.escapp-modal__overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -15,7 +15,7 @@
   z-index: 9999;
 }
 
-.modal__container {
+.escapp-modal__container {
   background-color: #fff;
   padding: 30px;
   max-width: 500px;
@@ -27,13 +27,13 @@
   min-height: 50vh;
 }
 
-.modal__header {
+.escapp-modal__header {
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
-.modal__title {
+.escapp-modal__title {
   margin-top: 0;
   margin-bottom: 0;
   font-weight: 600;
@@ -43,7 +43,7 @@
   box-sizing: border-box;
 }
 
-.modal__content {
+.escapp-modal__content {
   margin-top: 2rem;
   margin-bottom: 2rem;
   line-height: 1.5;
@@ -51,14 +51,14 @@
   min-height: 25vh;
 }
 
-.modal__content input {
+.escapp-modal__content input {
   width: 100%;
   min-height: 25px;
   border: 1px solid black;
   padding: 5px;
 }
 
-.modal__btn {
+.escapp-modal__btn {
   font-size: .875rem;
   padding-left: 1rem;
   padding-right: 1rem;
@@ -89,16 +89,16 @@
   user-select: none;
 }
 
-.modal__btn-primary {
+.escapp-modal__btn-primary {
   background-color: #00449e;
   color: #fff;
 }
 
-footer.modal__footer {
+footer.escapp-modal__footer {
   text-align: right;
 }
 
-footer .modal__btn {
+footer .escapp-modal__btn {
   background-color: #00449e;
   color: white;
   border: 1px solid black;
@@ -138,37 +138,46 @@ footer .modal__btn {
   display: block;
 }
 
-.micromodal-slide[aria-hidden="false"] .modal__overlay {
+.micromodal-slide[aria-hidden="false"] .escapp-modal__overlay {
   animation: mmfadeIn .3s cubic-bezier(0.0, 0.0, 0.2, 1);
 }
 
-.micromodal-slide[aria-hidden="false"] .modal__container {
+.micromodal-slide[aria-hidden="false"] .escapp-modal__container {
   animation: mmslideIn .3s cubic-bezier(0, 0, .2, 1);
 }
 
-.micromodal-slide[aria-hidden="true"] .modal__overlay {
+.micromodal-slide[aria-hidden="true"] .escapp-modal__overlay {
   animation: mmfadeOut .3s cubic-bezier(0.0, 0.0, 0.2, 1);
 }
 
-.micromodal-slide[aria-hidden="true"] .modal__container {
+.micromodal-slide[aria-hidden="true"] .escapp-modal__container {
   animation: mmslideOut .3s cubic-bezier(0, 0, .2, 1);
 }
 
-.micromodal-slide .modal__container,
-.micromodal-slide .modal__overlay {
+.micromodal-slide .escapp-modal__container,
+.micromodal-slide .escapp-modal__overlay {
   will-change: transform;
 }
 
-.micromodal-slide.require-input.invalid-input button.modal__btn:not(.ignore_input_validation) {
+.micromodal-slide.require-input.invalid-input button.escapp-modal__btn:not(.ignore_input_validation) {
   background: gray;
   cursor: default;
   opacity: 0.5;
 }
 
-#modal div.modal__container img.dialog_corner {
+#escapp-modal div.escapp-modal__container img.dialog_corner {
   position: fixed;
   right: 0px;
   top: 0px;
   margin: 10px;
   height: 35px;
+}
+
+#escapp-modal .escapp-modal__content div.escapp_content_img_wrapper {
+  display: none;
+  text-align: center;
+}
+
+#escapp-modal .escapp-modal__content div.escapp_content_img_wrapper img {
+  height: 30vh;
 }

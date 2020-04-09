@@ -12,6 +12,9 @@ export let ESCAPP_LOCALES = {
     "i.auth_email_label":"Email",
     "i.auth_password_label":"Password",
 
+    "i.completion_title":"¡Escape Room Completed!",
+    "i.completion_text":"¡Congratulations! You have completed the escape room. On the escapp platform you can check the ranking to see in which position you have ended.",
+
     "i.participation_error_TOO_LATE":"You are a participant of this escape room but the turn you have signed up for has ended or you have run out of time.",
     "i.participation_error_NOT_ACTIVE":"You are a participant of this escape room but the turn you have signed up for has not started yet.",
     "i.participation_error_NOT_STARTED":"You are a participant of this escape room but you need to click on the 'Start' button in the Escapp platform in order to start the escape room.",
@@ -38,6 +41,9 @@ export let ESCAPP_LOCALES = {
     "i.auth_text_wrong_credentials":"Las credenciales aportadas no son correctas. Debes introducir las credenciales (correo y contraseña) de tu usuario en la plataforma Escapp. Para que esta autenticación tenga éxito, previamente debes de haberte inscrito con tu usuario a la escape room en la plataforma Escapp.",
     "i.auth_email_label":"Correo electrónico",
     "i.auth_password_label":"Contraseña",
+
+    "i.completion_title":"¡Escape Room Completada!",
+    "i.completion_text":"¡Enhorabuena! Has completado la escape room.<br/>En la <a href='#{escappURL}' target='_blank'>plataforma escapp</a> puedes consultar el ranking para ver en que posición has finalizado.",
 
     "i.participation_error_TOO_LATE":"Eres participante de esta escape room pero el turno al que te has apuntado ha terminado o te has quedado sin tiempo.",
     "i.participation_error_NOT_ACTIVE":"Eres participante de esta escape room pero el turno al que te has apuntado aún no ha empezado.",

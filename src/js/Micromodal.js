@@ -98,7 +98,7 @@ export default (function() {
         if(typeof this.config.inputs !== "undefined"){
           var inputResults = [];
           for(var i=0; i<this.config.inputs.length; i++){
-            var inputDOM = document.getElementById("modal-input"+(i+1));
+            var inputDOM = document.getElementById("escapp-modal-input"+(i+1));
             inputResults.push(inputDOM.value);
           }
           dialogResponse.inputs = inputResults;
@@ -156,7 +156,7 @@ export default (function() {
         document.addEventListener('keydown', this.onKeydown);
         if(typeof this.config.inputs !== "undefined"){
           for(var i=0; i<this.config.inputs.length; i++){
-            var inputDOM = document.getElementById("modal-input"+(i+1))
+            var inputDOM = document.getElementById("escapp-modal-input"+(i+1))
             if(inputDOM) inputDOM.addEventListener('keydown', this.onInputKeyup);
           }
         }
@@ -168,7 +168,7 @@ export default (function() {
         document.removeEventListener('keydown', this.onKeydown);
         if(typeof this.config.inputs !== "undefined"){
           for(var i=0; i<this.config.inputs.length; i++){
-            var inputDOM = document.getElementById("modal-input"+(i+1))
+            var inputDOM = document.getElementById("escapp-modal-input"+(i+1))
             if(inputDOM) inputDOM.removeEventListener('keydown', this.onInputKeyup);
           }
         }
@@ -245,7 +245,7 @@ export default (function() {
           return true;
         }
         for(var i=0; i<this.config.inputs.length; i++){
-          var inputDOM = document.getElementById("modal-input"+(i+1));
+          var inputDOM = document.getElementById("escapp-modal-input"+(i+1));
           if(this.validateInput(inputDOM,this.config.inputs[i])===false){
             return false;
           }
@@ -304,7 +304,7 @@ export default (function() {
     const validateModalPresence = id => {
       if (!document.getElementById(id)) {
         console.warn(`MicroModal: \u2757Seems like you have missed %c'${id}'`, 'background-color: #f8f9fa;color: #50596c;font-weight: bold;', 'ID somewhere in your code. Refer example below to resolve it.');
-        console.warn(`%cExample:`, 'background-color: #f8f9fa;color: #50596c;font-weight: bold;', `<div class="modal" id="${id}"></div>`);
+        console.warn(`%cExample:`, 'background-color: #f8f9fa;color: #50596c;font-weight: bold;', `<div class="escapp-modal" id="${id}"></div>`);
         return false;
       }
     };

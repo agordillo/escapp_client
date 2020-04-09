@@ -192,6 +192,23 @@ export default function ESCAPP(options){
     this.displayCustomDialog(title,text,dialogOptions,callback);
   };
 
+  this.displayCompletionDialog = function(extraOptions,callback){
+    let dialogOptions = {escapp: true, img: (settings.imagesPath + "/trophy.png")};
+    if(typeof extraOptions === "object"){
+      dialogOptions = Object.assign(dialogOptions,extraOptions);
+    }
+    dialogOptions.closeCallback = function(){
+      setTimeout(function(){
+        this.stopAnimation("confetti");
+      }.bind(this),1500);
+      if(typeof callback === "function"){
+        callback();
+      }
+    }.bind(this);
+    this.startAnimation("confetti");
+    this.displayCustomDialog(I18n.getTrans("i.completion_title"),I18n.getTrans("i.completion_text",{escappURL: this.getEscappPlatformFinishURL()}),dialogOptions,callback);
+  };
+
   this.displayCustomDialog = function(title,text,extraOptions,callback){
     let dialogOptions = {title: title, text: text, escapp: false, icon: undefined};
     if(typeof callback === "function"){
@@ -513,6 +530,13 @@ export default function ESCAPP(options){
     return ((typeof erState === "object")&&(erState.puzzlesSolved instanceof Array));
   };
 
+  this.getEscappPlatformURL = function(){
+    return settings.endpoint.replace("/api","");
+  };
+
+  this.getEscappPlatformFinishURL = function(){
+    return settings.endpoint.replace("/api","") + "/finish";
+  };
 
   //////////////////
   // UI

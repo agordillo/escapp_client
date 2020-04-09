@@ -56,6 +56,11 @@ let loadEvents = function(){
 			//On close dialog callback
 		});
 	});
+	$("#cosdialog").click(function(){
+		escapp.displayCompletionDialog({},function(){
+			//On close dialog callback
+		});
+	});
 	$("#cdialog").click(function(){
 		escapp.displayCustomDialog("Dialog title","Content of the custom dialog",{},function(){
 			//On close dialog callback
