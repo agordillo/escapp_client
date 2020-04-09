@@ -6,10 +6,12 @@ div.site_wrapper {
 	height: 100%;
 	width: 100%;
 	font-family: Arial, Helvetica, sans-serif;
+	padding: 20px;
+	display: inline-block;
 }
 
 div.site_wrapper button, div.site_wrapper a {
-	display: block;
+	display: inline-block;
 	background-color: #232951;
 	color: white;
 	border: 1px solid black;
@@ -24,4 +26,9 @@ div.site_wrapper a {
 	text-decoration: none;
 	outline: none;
 	width: 150px;
+}
+
+#buttons_wrapper {
+	padding: 0;
+	margin: 0;
 }

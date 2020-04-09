@@ -73,6 +73,12 @@ let loadEvents = function(){
 			}
 		});
 	});
+	$("#startAnimation").click(function(){
+		escapp.startAnimation("confetti");
+	});
+	$("#stopAnimation").click(function(){
+		escapp.stopAnimation("confetti");
+	});
 	$("#ldata").click(function(){
 		escapp.reset(function(){
 			console.log("Local data removed");

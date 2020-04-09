@@ -15,6 +15,7 @@ import * as Utils from './Utils.js';
 import * as I18n from './I18n.js';
 import * as LocalStorage from './Storage.js';
 import * as Dialogs from './Dialogs.js';
+import * as Animations from './Animations.js';
 
 let DEFAULT_ESCAPP_ER_STATE = {"puzzlesSolved": [], "hintsAllowed": true};
 
@@ -62,6 +63,7 @@ export default function ESCAPP(options){
     I18n.init(settings.I18n);
     LocalStorage.init(settings.localStorageKey);
     Dialogs.init({imagesPath: settings.imagesPath});
+    Animations.init({imagesPath: settings.imagesPath});
 
     //Get user from LocalStorage
     let user = LocalStorage.getSetting("user");
@@ -220,6 +222,14 @@ export default function ESCAPP(options){
     url = Utils.addParamToUrl(url,"token",userCredentials.token);
     //Password is never shown on URLs.
     return url;
+  };
+
+  this.startAnimation = function(animation,time){
+    Animations.startAnimation(animation,time);
+  };
+
+  this.stopAnimation = function(animation){
+    Animations.stopAnimation(animation);
   };
 
   //////////////////
