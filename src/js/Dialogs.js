@@ -28,7 +28,7 @@ export function init(options){
 
 export function displayDialog(options){
 	if($("#escapp-modal").hasClass("is-open")){
-		MicroModal.close('modal', {
+		MicroModal.close('escapp-modal', {
 			onClose: function(modal,response){
 				setTimeout(function(){
 					displayDialog(options);
