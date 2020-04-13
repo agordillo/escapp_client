@@ -318,16 +318,25 @@ export default function ESCAPP(options){
   this.submitPuzzle = function(puzzleId,solution,options,callback){
     let userCredentials = this.getUserCredentials(settings.user);
     if(typeof userCredentials === "undefined"){
-      return callback(false,{msg: "Invalid params"});
+      if(typeof callback === "function"){
+        callback(false,{msg: "Invalid params"});
+      }
+      return;
     }
     if((typeof puzzleId === "undefined")&&(settings.appPuzzleIds instanceof Array)&&(settings.appPuzzleIds.length === 1)){
       puzzleId = settings.appPuzzleIds[0];
     }
     if(typeof puzzleId === "undefined"){
-      return callback(false,{msg: "Puzzle id not provided"});
+      if(typeof callback === "function"){
+        callback(false,{msg: "Puzzle id not provided"});
+      }
+      return;
     }
     if(settings.puzzlesRequirements !== true){
-      return callback(false,{msg: "Invalid puzzle requirements"});
+      if(typeof callback === "function"){
+        callback(false,{msg: "Invalid puzzle requirements"});
+      }
+      return;
     }
 
     let that = this;
@@ -361,6 +370,38 @@ export default function ESCAPP(options){
         }
       }
     );
+  };
+
+  this.start = function(callback){
+    let userCredentials = this.getUserCredentials(settings.user);
+    if(typeof userCredentials === "undefined"){
+      if(typeof callback === "function"){
+        callback(false);
+      }
+      return;
+    }
+
+    let that = this;
+    let startURL = settings.endpoint + "/start";
+    let body = userCredentials;
+
+    fetch(startURL, {
+      method: 'POST',
+      body: JSON.stringify(body),
+      headers: {
+        "Content-type": "application/json",
+        "Accept-Language": "es-ES"
+      }
+    }).then(res => res.json()).then(function(res){
+        if(that.validateERState(res.erState)){
+          settings.remoteErState = res.erState;
+        }
+        let startSuccess = (res.code === "OK");
+        if(typeof callback === "function"){
+          callback(startSuccess,res);
+        }
+      }
+    ); 
   };
 
   this.sendData = function(data,callback){
@@ -581,7 +622,7 @@ export default function ESCAPP(options){
         this.auth(user,function(success){
           if(settings.user.authenticated === true){
             // User authentication succesfull
-            if(settings.user.participation !== "PARTICIPANT"){
+            if(["PARTICIPANT","NOT_STARTED"].indexOf(settings.user.participation) === -1){
               //User is authenticated but not a participant
               this.displayUserParticipationErrorDialog(function(){
                 if(typeof callback === "function"){
@@ -589,8 +630,32 @@ export default function ESCAPP(options){
                 }
               });
             } else {
-              if(typeof callback === "function"){
-                callback(true);
+              if(settings.user.participation === "NOT_STARTED"){
+                //User is authenticated and a participant, but the escape room needs to be started.
+                //Ask the participant if he/she wants to start the escape room.
+                this.displayStartDialog(function(start){
+                  if(start===true){
+                    //User wants to init escape room
+                     this.start(function(success){
+                      //ER started (unless error on server side)
+                      if(typeof callback === "function"){
+                        callback((success===true));
+                      }
+                    });
+                  } else {
+                    //User do not want to init escape room
+                    //Display error message
+                    if(typeof callback === "function"){
+                      callback(false);
+                    }
+                  }
+                }.bind(this));
+              } else {
+                //settings.user.participation === "PARTICIPANT"
+                //User is authenticated, user is a participant, and user has started the escape room.
+                if(typeof callback === "function"){
+                  callback(true);
+                }
               }
             }
           } else {
@@ -680,6 +745,29 @@ export default function ESCAPP(options){
       }.bind(this);
     }
 
+    this.displayDialog(dialogOptions);
+  };
+
+  this.displayStartDialog = function(callback){
+    let dialogOptions = {};
+    dialogOptions.title = I18n.getTrans("i.start_title");
+    dialogOptions.text = I18n.getTrans("i.start_text");
+    dialogOptions.buttons = [
+      {
+        "response":"ok",
+        "label":I18n.getTrans("i.button_ok"),
+      }, {
+        "response":"nok",
+        "label":I18n.getTrans("i.button_nok"),
+      },
+    ];
+    
+    if(typeof callback === "function"){
+      dialogOptions.closeCallback = function(dialogResponse){
+        let response = (dialogResponse.choice==="ok");
+        callback(response);
+      }.bind(this);
+    }
     this.displayDialog(dialogOptions);
   };
 

@@ -25,7 +25,10 @@ export let ESCAPP_LOCALES = {
     "i.restore_title":"Status update",
     "i.restore_auto_text":"A newer application status was found on the Escapp server. The application is going to be updated based on this status.",
     "i.restore_request_text":"A newer application status was found on the Escapp server. Do you want to update the application based on this status? If you don't, your application could be in a different state than the rest of your team members.",
-    
+  
+    "i.start_title":"Do you want to start the escape room?",
+    "i.start_text":"Press 'Ok' to start the escape room right now or 'Cancel' to start it later.<br/>Once the escape room has been started, time will start to run and it cannot be stopped.",
+
     "i.notsupported_title":"Unsupported web browser",
     "i.notsupported_text":"We are sorry. Your web browser does not allow to perform this activity. Try a different browser.",
   },
@@ -56,6 +59,9 @@ export let ESCAPP_LOCALES = {
     "i.restore_auto_text":"Se encontró un estado más reciente de la aplicación en el servidor de Escapp. Se va a actualizar la aplicación en base a este estado.",
     "i.restore_request_text":"Se encontró un estado más reciente de la aplicación en el servidor de Escapp. ¿Desea actualizar la aplicación en base a este estado? Si no lo hace su aplicación podría estar en un estado diferente al del resto de miembros de su equipo.",
     
+    "i.start_title":"¿Quieres iniciar la escape room?",
+    "i.start_text":"Pulsa 'Ok' para empezar la escape room ahora mismo o 'Cancelar' para iniciarla en otro momento.<br/>Una vez iniciada la escape room, empezará a correr el tiempo y éste no podrá ser detenido.",
+      
     "i.notsupported_title":"Navegador web no soportado",
     "i.notsupported_text":"Lo sentimos. Su navegador web no permite realizar esta actividad. Pruebe con otro navegador.",
   },
