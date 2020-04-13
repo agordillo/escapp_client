@@ -14,6 +14,7 @@ import Bowser from "bowser";
 import * as Utils from './Utils.js';
 import * as I18n from './I18n.js';
 import * as LocalStorage from './Storage.js';
+import * as Encrypt from './Encrypt.js';
 import * as Dialogs from './Dialogs.js';
 import * as Animations from './Animations.js';
 
@@ -26,6 +27,7 @@ export default function ESCAPP(options){
     initCallback: undefined,
     endpoint: undefined,
     localStorageKey: "ESCAPP",
+    encryptKey: undefined,
     imagesPath: "./images/",
     restoreState: "REQUEST_USER", //AUTO, AUTO_NOTIFICATION, REQUEST_USER, NEVER
     I18n: undefined,
@@ -53,6 +55,9 @@ export default function ESCAPP(options){
 
   // Settings merged with defaults and extended options
   let settings = Utils.deepMerge(defaults, options);
+  if(typeof settings.encryptKey === "undefined"){
+    settings.encryptKey = settings.localStorageKey;
+  }
 
   //////////////////
   // Init
@@ -62,6 +67,7 @@ export default function ESCAPP(options){
     //Init modules
     I18n.init(settings.I18n);
     LocalStorage.init(settings.localStorageKey);
+    Encrypt.init(settings.encryptKey);
     Dialogs.init({imagesPath: settings.imagesPath});
     Animations.init({imagesPath: settings.imagesPath});
 
@@ -228,6 +234,10 @@ export default function ESCAPP(options){
     if(typeof callback === "function"){
       callback();
     }
+  };
+
+  this.encrypt = function(value,algorithm,options={}){
+    return Encrypt.encrypt(value,algorithm,options);
   };
 
   this.addUserCredentialsToUrl = function(url){
