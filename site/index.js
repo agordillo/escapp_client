@@ -78,6 +78,10 @@ let loadEvents = function(){
 			}
 		});
 	});
+	$("#notification").click(function(){
+		escapp.displayCustomEscappNotification("Content of the custom notification",{});
+	});
+	
 	$("#startAnimation").click(function(){
 		escapp.startAnimation("confetti");
 	});

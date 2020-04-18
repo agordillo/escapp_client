@@ -16,7 +16,9 @@ import * as I18n from './I18n.js';
 import * as LocalStorage from './Storage.js';
 import * as Encrypt from './Encrypt.js';
 import * as Dialogs from './Dialogs.js';
+import * as Notifications from './Notifications.js';
 import * as Animations from './Animations.js';
+import * as Events from './Events.js';
 
 let DEFAULT_ESCAPP_ER_STATE = {"puzzlesSolved": [], "hintsAllowed": true};
 
@@ -69,7 +71,9 @@ export default function ESCAPP(options){
     LocalStorage.init(settings.localStorageKey);
     Encrypt.init(settings.encryptKey);
     Dialogs.init({imagesPath: settings.imagesPath});
+    Notifications.init({imagesPath: settings.imagesPath});
     Animations.init({imagesPath: settings.imagesPath});
+    Events.init({imagesPath: settings.imagesPath});
 
     //Get user from LocalStorage
     let user = LocalStorage.getSetting("user");
@@ -226,6 +230,19 @@ export default function ESCAPP(options){
       dialogOptions = Object.assign(dialogOptions,extraOptions);
     }
     this.displayDialog(dialogOptions);
+  };
+
+  this.displayCustomEscappNotification = function(text,extraOptions){
+    let notificationOptions = Utils.deepMerge((extraOptions || {}),{escapp: true});
+    this.displayCustomNotification(text,notificationOptions);
+  };
+
+  this.displayCustomNotification = function(text,extraOptions){
+    let notificationOptions = {text: text, escapp: false, icon: undefined};
+    if(typeof extraOptions === "object"){
+      notificationOptions = Object.assign(notificationOptions,extraOptions);
+    }
+    this.displayNotification(notificationOptions);
   };
 
   this.reset = function(callback){
@@ -771,9 +788,14 @@ export default function ESCAPP(options){
     this.displayDialog(dialogOptions);
   };
 
-  this.displayDialog = function(options){
-    options = Utils.deepMerge({escapp:true},(options || {}));
+  this.displayDialog = function(options = {}){
+    options = Utils.deepMerge({escapp:true},options);
     return Dialogs.displayDialog(options);
+  };
+
+  this.displayNotification = function(options = {}){
+    options = Utils.deepMerge({escapp:true},options);
+    return Notifications.displayNotification(options);
   };
 
 
