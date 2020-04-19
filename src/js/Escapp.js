@@ -86,7 +86,7 @@ export default function ESCAPP(options){
     Dialogs.init({imagesPath: settings.imagesPath});
     Notifications.init({imagesPath: settings.imagesPath});
     Animations.init({imagesPath: settings.imagesPath});
-    Events.init({imagesPath: settings.imagesPath});
+    Events.init({endpoint: settings.endpoint, imagesPath: settings.imagesPath});
 
     //Get user from LocalStorage
     let user = LocalStorage.getSetting("user");
@@ -478,6 +478,7 @@ export default function ESCAPP(options){
     this.validatePreviousPuzzles(function(success){
         if((success)||(settings.forceValidation===false)){
           this.validateStateToRestore(function(erState){
+            this.afterValidateUser();
             if(typeof callback === "function"){
               callback(success,erState);
             }
@@ -488,6 +489,10 @@ export default function ESCAPP(options){
           }
         }
     }.bind(this));
+  };
+
+  this.afterValidateUser = function(){
+    this.connect();
   };
 
   this.validatePreviousPuzzles = function(callback){
@@ -688,6 +693,13 @@ export default function ESCAPP(options){
 
   this.getEscappPlatformFinishURL = function(){
     return settings.endpoint.replace("/api","") + "/finish";
+  };
+
+  this.connect = function(){
+    let userCredentials = this.getUserCredentials(settings.user);
+    if(typeof userCredentials !== "undefined"){
+      Events.connect(userCredentials);
+    }
   };
 
   //////////////////
