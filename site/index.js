@@ -79,7 +79,11 @@ let loadEvents = function(){
 		});
 	});
 	$("#notification").click(function(){
-		escapp.displayCustomEscappNotification("Content of the custom notification",{});
+		escapp.displayCustomEscappNotification("Content of the custom escapp notification");
+		// escapp.displayCustomNotification("Content of the custom ranking notification",{type: "ranking"});
+		// escapp.displayCustomNotification("Content of the custom warning notification",{type: "warning"});
+		// escapp.displayCustomNotification("Content of the custom info notification",{type: "info"});
+		// escapp.displayCustomNotification("Content of the custom event notification",{type: "event"});
 	});
 	
 	$("#startAnimation").click(function(){
