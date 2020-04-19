@@ -20,7 +20,19 @@ import * as Notifications from './Notifications.js';
 import * as Animations from './Animations.js';
 import * as Events from './Events.js';
 
-let DEFAULT_ESCAPP_ER_STATE = {"puzzlesSolved": [], "hintsAllowed": true};
+let DEFAULT_ESCAPP_ER_STATE = {
+  puzzlesSolved: [], 
+  puzzleData: {},
+  progress: 0,
+  score: 0,
+  nPuzzles: undefined,
+  hintsAllowed: undefined,
+  startTime: undefined,
+  remainingTime: undefined,
+  teamId: undefined,
+  teamMembers: undefined,
+  ranking: undefined
+};
 
 export default function ESCAPP(options){
 
@@ -52,6 +64,7 @@ export default function ESCAPP(options){
     },
     localErState: undefined,
     remoteErState: undefined,
+    teamName: undefined,
     puzzlesRequirements: true,
   };
 
@@ -97,6 +110,9 @@ export default function ESCAPP(options){
     }
     settings.localErState = localErState;
     LocalStorage.saveSetting("localErState",settings.localErState);
+
+    //Fill some settings from erState
+    this.updateSettingsFromLocalErState();
   };
 
 
@@ -310,9 +326,7 @@ export default function ESCAPP(options){
       settings.user.participation = res.participation;
       LocalStorage.saveSetting("user", settings.user);
 
-      if(that.validateERState(res.erState)){
-        settings.remoteErState = res.erState;
-      }
+      that.updateRemoteErState(res.erState);
 
       if(typeof callback === "function"){
         callback(settings.user.authenticated);
@@ -369,9 +383,6 @@ export default function ESCAPP(options){
         "Accept-Language": "es-ES"
       }
     }).then(res => res.json()).then(function(res){
-        if(that.validateERState(res.erState)){
-          settings.remoteErState = res.erState;
-        }
         let submitSuccess = (res.code === "OK");
         if(submitSuccess){
           //Puzzle solved
@@ -381,7 +392,8 @@ export default function ESCAPP(options){
               LocalStorage.saveSetting("localErState",settings.localErState);
             }
           }
-        } 
+        }
+        that.updateRemoteErState(res.erState);
         if(typeof callback === "function"){
           callback(submitSuccess,res);
         }
@@ -410,10 +422,12 @@ export default function ESCAPP(options){
         "Accept-Language": "es-ES"
       }
     }).then(res => res.json()).then(function(res){
-        if(that.validateERState(res.erState)){
-          settings.remoteErState = res.erState;
-        }
+        that.updateRemoteErState(res.erState);
         let startSuccess = (res.code === "OK");
+        if(startSuccess){
+          settings.user.participation = res.participation;
+          LocalStorage.saveSetting("user", settings.user);
+        }
         if(typeof callback === "function"){
           callback(startSuccess,res);
         }
@@ -467,7 +481,7 @@ export default function ESCAPP(options){
             if(typeof callback === "function"){
               callback(success,erState);
             }
-          });
+          }.bind(this));
         } else {
           if(typeof callback === "function"){
             callback(false,undefined);
@@ -550,9 +564,68 @@ export default function ESCAPP(options){
     }
   };
 
+  this.updateRemoteErState = function(remoteErState){
+    if(this.validateERState(remoteErState) === false){
+      return;
+    }
+    settings.remoteErState = remoteErState;
+
+    //Add data from remoteErState to the localErState
+    //These data must be integrated into the localErState even the user rejects to restore the state
+    let erStateKeys = ["nPuzzles","hintsAllowed","startTime","remainingTime","teamId","teamMembers","ranking"];
+    for(let i=0; i<erStateKeys.length; i++){
+      if((typeof settings.localErState[erStateKeys[i]] === "undefined")&&(typeof remoteErState[erStateKeys[i]] !== "undefined")){
+        settings.localErState[erStateKeys[i]] = remoteErState[erStateKeys[i]];
+      }
+    }
+
+    //Puzzle data
+    if((typeof settings.remoteErState.puzzleData === "object")&&(Object.keys(settings.remoteErState.puzzleData).length > 0)){
+      for(let x=0; x<settings.localErState.puzzlesSolved.length; x++){
+        let puzzleData = settings.remoteErState.puzzleData[settings.localErState.puzzlesSolved[x]]
+        if(typeof puzzleData === "object"){
+          settings.localErState.puzzleData[settings.localErState.puzzlesSolved[x]] = puzzleData;
+        }
+      }
+    }
+
+    //Progress and score
+    this.updateTrackingLocalErState();
+
+    if(this.validateERState(settings.localErState)){
+      LocalStorage.saveSetting("localErState",settings.localErState);
+    }
+
+    //Store erState data in settings
+    this.updateSettingsFromLocalErState();
+  };
+
+  this.updateSettingsFromLocalErState = function(){
+    if(this.validateERState(settings.localErState) === false){
+      return;
+    }
+    let teamName = this.getTeamNameFromERState(settings.localErState);
+    if(typeof teamName === "string"){
+      settings.teamName = teamName;
+    }
+  };
+
+  this.updateTrackingLocalErState = function(){
+    //Progress
+    settings.localErState.progress = 100.0 * settings.localErState.puzzlesSolved.length/settings.localErState.nPuzzles;
+
+    //Score
+    let newScore = 0;
+    let pDataKeys = Object.keys(settings.localErState.puzzleData);
+    for(let y=0; y<pDataKeys.length; y++){
+      newScore = newScore + settings.localErState.puzzleData[pDataKeys[y]].score;
+    }
+    settings.localErState.score = newScore;
+  };
+
   this.getNewestState = function(){
     return (this.isRemoteStateNewest() ? settings.remoteErState : settings.localErState);
-  }
+  };
 
   this.isRemoteStateNewest = function(appScope){
     let localErStateValid = this.validateERState(settings.localErState);
@@ -596,6 +669,17 @@ export default function ESCAPP(options){
 
   this.validateERState = function(erState){
     return ((typeof erState === "object")&&(erState.puzzlesSolved instanceof Array));
+  };
+
+  this.getTeamNameFromERState = function(erState){
+    if((typeof erState.teamId === "number")&&(erState.ranking instanceof Array)){
+      for(let i=0; i<erState.ranking.length; i++){
+        if(erState.ranking[i].id === erState.teamId){
+          return erState.ranking[i].name;
+        }
+      }
+    }
+    return undefined;
   };
 
   this.getEscappPlatformURL = function(){
@@ -655,10 +739,13 @@ export default function ESCAPP(options){
                     //User wants to init escape room
                      this.start(function(success){
                       //ER started (unless error on server side)
+                      if(success===true){
+                        this.displayStartNotification();
+                      }
                       if(typeof callback === "function"){
                         callback((success===true));
                       }
-                    });
+                    }.bind(this));
                   } else {
                     //User do not want to init escape room
                     //Display error message
@@ -791,6 +878,19 @@ export default function ESCAPP(options){
   this.displayDialog = function(options = {}){
     options = Utils.deepMerge({escapp:true},options);
     return Dialogs.displayDialog(options);
+  };
+
+  this.displayStartNotification = function(){
+    if(typeof settings.teamName === "undefined"){
+      return false;
+    }
+    if(this.getNewestState().puzzlesSolved.length !== 0){
+      return false;
+    }
+
+    let notificationOptions = {};
+    notificationOptions.text = I18n.getTrans("i.notification_start", {team: settings.teamName});
+    this.displayNotification(notificationOptions);
   };
 
   this.displayNotification = function(options = {}){

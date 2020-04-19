@@ -29,6 +29,8 @@ export let ESCAPP_LOCALES = {
     "i.start_title":"Do you want to start the escape room?",
     "i.start_text":"Press 'Ok' to start the escape room right now or 'Cancel' to start it later.<br/>Once the escape room has been started, time will start to run and it cannot be stopped.",
 
+    "i.notification_start": "The Escape Room begins. Good luck #{team}!",
+
     "i.notsupported_title":"Unsupported web browser",
     "i.notsupported_text":"We are sorry. Your web browser does not allow to perform this activity. Try a different browser.",
   },
@@ -62,6 +64,8 @@ export let ESCAPP_LOCALES = {
     "i.start_title":"¿Quieres iniciar la escape room?",
     "i.start_text":"Pulsa 'Ok' para empezar la escape room ahora mismo o 'Cancelar' para iniciarla en otro momento.<br/>Una vez iniciada la escape room, empezará a correr el tiempo y éste no podrá ser detenido.",
       
+    "i.notification_start": "Empieza la Escape Room. ¡Suerte #{team}!",
+
     "i.notsupported_title":"Navegador web no soportado",
     "i.notsupported_text":"Lo sentimos. Su navegador web no permite realizar esta actividad. Pruebe con otro navegador.",
   },
