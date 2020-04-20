@@ -13,7 +13,7 @@ export function init(options){
 	}
 	initialized = true;
 	imagesPath = options.imagesPath || "/assets/images/";
-}
+};
 
 export function startAnimation(animation,time){
 	let started = true;
@@ -41,7 +41,7 @@ export function startAnimation(animation,time){
 			this.stopAnimation(animation);
 		}.bind(this),time);
 	}
-}
+};
 
 export function stopAnimation(animation){
 	let aIndex = startedAnimations.indexOf(animation);
@@ -61,4 +61,4 @@ export function stopAnimation(animation){
 	}
 	
 	startedAnimations.splice(aIndex,1);
-}
+};

@@ -12,10 +12,10 @@ export function init(options){
 	}
 	initialized = true;
 	imagesPath = options.imagesPath || "/assets/images/";
-    let modalHTMLcode = '<div class="escapp-modal micromodal-slide" id="escapp-modal" aria-hidden="true"><div class="escapp-modal__overlay" tabIndex="-1"><div class="escapp-modal__container" role="dialog" aria-modal="true"><header class="escapp-modal__header"><h2 class="escapp-modal__title" id="escapp-modal-title"></h2></header><main class="escapp-modal__content" id="escapp-modal-content"><p class="content"></p></main><footer class="escapp-modal__footer"></footer></div></div>';
-    $("body").prepend(modalHTMLcode);
-    $("#escapp-modal div.escapp-modal__container").prepend('<img class="dialog_corner logo" src="' + imagesPath + 'escapp_logo_dark.png"/>');
-    $("#escapp-modal div.escapp-modal__container").prepend('<img class="dialog_corner lock" src="' + imagesPath + 'lock.svg"/>')
+  let modalHTMLcode = '<div class="escapp-modal micromodal-slide" id="escapp-modal" aria-hidden="true"><div class="escapp-modal__overlay" tabIndex="-1"><div class="escapp-modal__container" role="dialog" aria-modal="true"><header class="escapp-modal__header"><h2 class="escapp-modal__title" id="escapp-modal-title"></h2></header><main class="escapp-modal__content" id="escapp-modal-content"><p class="content"></p></main><footer class="escapp-modal__footer"></footer></div></div>';
+  $("body").prepend(modalHTMLcode);
+  $("#escapp-modal div.escapp-modal__container").prepend('<img class="dialog_corner logo" src="' + imagesPath + 'escapp_logo_dark.png"/>');
+  $("#escapp-modal div.escapp-modal__container").prepend('<img class="dialog_corner lock" src="' + imagesPath + 'lock.svg"/>')
 	$("#escapp-modal .escapp-modal__content").prepend('<div class="escapp_content_img_wrapper"><img src="' + imagesPath + 'trophy.png"/></div>');
 	MicroModal.init({
 	  disableScroll: true,
@@ -24,7 +24,7 @@ export function init(options){
 	  awaitCloseAnimation: false,
 	  debugMode: false
 	});
-}
+};
 
 export function displayDialog(options){
 	if($("#escapp-modal").hasClass("is-open")){
@@ -127,4 +127,4 @@ export function displayDialog(options){
 		inputs : options.inputs,
 		buttons: options.buttons
 	});
-}
+};

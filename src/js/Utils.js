@@ -82,7 +82,22 @@ export function validateString(str){
 
 export function generateRandomNumber(min,max){
   return Math.floor(Math.random()*(max-min+1)+min);
-}
+};
+
+let isEmbedCache;
+export function isEmbed(){
+  if(typeof isEmbedCache === "boolean"){
+    return isEmbedCache;
+  }
+
+  let _isEmbed = true;
+  try {
+    _isEmbed = (window.location !== window.parent.location);
+  } catch(e){}
+
+  isEmbedCache = _isEmbed;
+  return _isEmbed;
+};
 
 export function debug(msg){
   if(typeof msg === "object"){

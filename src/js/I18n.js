@@ -47,8 +47,6 @@ export function getLanguage(){
 function getUserLanguage(){
   // Locale in URL
   let urlParams = Utils.getParamsFromCurrentUrl();
-  console.log("URL PARAMS");
-  console.log(urlParams);
   if(isValidLanguage(urlParams.locale)){
     return urlParams.locale;
   }
