@@ -30,6 +30,11 @@ export function init(options){
   }
 
   imagesPath = options.imagesPath || "/assets/images/";
+
+  //Escapp is the default boostrap style. Will be overriden from CSS.
+  $.notify.addStyle("escapp", {
+    html: "<div>\n<span data-notify-text></span>\n</div>",
+  });
 }
 
 export function displayNotification(options = {}){
@@ -86,7 +91,7 @@ function displayWarningNotification(options = {}){
 
 function displayEventNotification(options = {}){
   let notificationOptions = Utils.deepMerge(options,{
-    className: "event",
+    className: 'event',
   });
   return _displayNotification(notificationOptions);
 };
@@ -94,7 +99,8 @@ function displayEventNotification(options = {}){
 function _displayNotification(options = {}){
   let autoHideDelay = getAutoHideDelay(options.text);
   let notificationOptions = Utils.deepMerge({
-    className: "event",
+    className: 'event',
+    style: 'escapp',
     clickToHide: true,
     autoHide: true,
     autoHideDelay: getAutoHideDelay(options.text),

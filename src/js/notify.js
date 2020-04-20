@@ -14,7 +14,7 @@
 	};
 
 	var pluginName = "notify";
-	var pluginClassName = pluginName + "js";
+	var pluginClassName = "escapp_notifyjs";
 	var blankFieldName = pluginName + "!blank";
 
 	var positions = {
