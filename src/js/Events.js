@@ -9,11 +9,13 @@ let ESCAPE_ROOM_ID;
 let TEAM_ID;
 let TEAM_NAME;
 let TIME_SECONDARY_NOTIFICATIONS;
+let DELAY_FOR_RECONNECTIONS = 3000;
 let io = IO;
 let socket;
 let state = {
   connected: false,
-  connectedTeamMembers: {},
+  connectedTeamMembers: [],
+  reconnectionTeamMembers: {},
   ranking: undefined,
   allowSecondaryRankingNotifications: true,
 }
@@ -72,6 +74,7 @@ export function connect(userCredentials,initialSettings){
 function loadSocketEvents(socket){
   socket.on("connect",onConnect);
   socket.on("disconnect", onDisconnect);
+  socket.on('INITIAL_INFO', onInitialInfo);
   socket.on('JOIN', onMemberJoin);
   socket.on('LEAVE', onMemberLeave);
   socket.on('HINT_RESPONSE', onNewHint);
@@ -97,56 +100,91 @@ function onConnect(){
   // console.log("OnConnected");
 };
 
+function onInitialInfo(data){
+  if(data.connectedMembers instanceof Array){
+    state.connectedTeamMembers = data.connectedMembers;
+  }
+};
+
 function onDisconnect(){
   state.connected = false;
   // console.log("OnDisconnected");
 };
 
-function onMemberJoin(member){
-  if((typeof member !== "object")||(typeof member.username !== "string")){
+function onMemberJoin(data){
+  if((typeof data !== "object")||(typeof data.username !== "string")){
     return;
   }
 
+  let previousConnectedTeamMembers = Object.assign([],state.connectedTeamMembers);
+  if(data.connectedMembers instanceof Array){
+    state.connectedTeamMembers = data.connectedMembers;
+  }
+
   //A new member of my team joined the Escape Room
-  let memberEmail = member.username;
+  let memberEmail = data.username;
   let settings = ESCAPP.getSettings();
 
   if(memberEmail === settings.user.email){
     return;
   }
 
-  if(settings.localErState.teamMembers.indexOf(memberEmail)!==-1){
-    if(typeof state.connectedTeamMembers[memberEmail] === "undefined"){
-      state.connectedTeamMembers[memberEmail] = 1;
-      let memberName = ESCAPP.getMemberNameFromERState(settings.localErState,memberEmail);
-      if(typeof memberName === "string"){
-        displayOnMemberJoinNotification(memberName);
+  if(settings.localErState.teamMembers.indexOf(memberEmail) !== -1){
+    if(previousConnectedTeamMembers.indexOf(memberEmail) === -1){
+      if(typeof state.reconnectionTeamMembers[memberEmail] === "undefined"){
+        let memberName = ESCAPP.getMemberNameFromERState(settings.localErState,memberEmail);
+        if(typeof memberName === "string"){
+          displayOnMemberJoinNotification(memberName);
+        }
       }
-    } else if(typeof state.connectedTeamMembers[memberEmail] === "number"){
-      state.connectedTeamMembers[memberEmail] = state.connectedTeamMembers[memberEmail] + 1;
     }
   }
 };
 
-function onMemberLeave(member){
-  if((typeof member !== "object")||(typeof member.username !== "string")){
+function onMemberLeave(data){
+  if((typeof data !== "object")||(typeof data.username !== "string")){
     return;
   }
 
+  let previousConnectedTeamMembers = Object.assign([],state.connectedTeamMembers);
+  if(data.connectedMembers instanceof Array){
+    state.connectedTeamMembers = data.connectedMembers;
+  }
+
   //A member of my team left the Escape Room
-  let memberEmail = member.username;
+  let memberEmail = data.username;
   let settings = ESCAPP.getSettings();
 
-  if(settings.localErState.teamMembers.indexOf(memberEmail)!==-1){
-    if(typeof state.connectedTeamMembers[memberEmail] === "number"){
-      state.connectedTeamMembers[memberEmail] = state.connectedTeamMembers[memberEmail] - 1;
-      if(state.connectedTeamMembers[memberEmail] === 0){
-        delete state.connectedTeamMembers[memberEmail];
-        let memberName = ESCAPP.getMemberNameFromERState(settings.localErState,memberEmail);
-        displayOnMemberLeaveNotification(memberName);
+  if(memberEmail === settings.user.email){
+    return;
+  }
+
+  if(settings.localErState.teamMembers.indexOf(memberEmail) !== -1){
+    if(previousConnectedTeamMembers.indexOf(memberEmail) !== -1){
+      if(state.connectedTeamMembers.indexOf(memberEmail) === -1){
+        if(typeof state.reconnectionTeamMembers[memberEmail] === "number"){
+          state.reconnectionTeamMembers[memberEmail] = state.reconnectionTeamMembers[memberEmail] + 1;
+        } else {
+          state.reconnectionTeamMembers[memberEmail] = 1;
+        }
+        setTimeout(function(){
+          //Do not show leave messages on reconnections
+          if(typeof state.reconnectionTeamMembers[memberEmail] === "number"){
+            state.reconnectionTeamMembers[memberEmail] = state.reconnectionTeamMembers[memberEmail] - 1;
+            if(state.reconnectionTeamMembers[memberEmail] === 0){
+              delete state.reconnectionTeamMembers[memberEmail];
+            }
+          }
+          if(state.connectedTeamMembers.indexOf(memberEmail) === -1){
+            if(typeof state.reconnectionTeamMembers[memberEmail] === "undefined"){
+              let memberName = ESCAPP.getMemberNameFromERState(settings.localErState,memberEmail);
+              if(typeof memberName === "string"){
+                displayOnMemberLeaveNotification(memberName);
+              }
+            }
+          }
+        }, DELAY_FOR_RECONNECTIONS);
       }
-    } else if(typeof state.connectedTeamMembers[memberEmail] === "undefined"){
-      //Do nothing
     }
   }
 };
