@@ -182,10 +182,11 @@ function onNewRanking(data){
 //////////////////
 
 function onNewErState(erState){
-  let erStateBeforeEvent = Object.assign({},ESCAPP.getSettings().localErState);
+  let localErStateBeforeEvent = Object.assign({},ESCAPP.getSettings().localErState);
+  let isRemoteStateNewestForApp = ESCAPP.isRemoteStateNewestForApp();
   ESCAPP.validateStateToRestore(function(erState){
     if(typeof erState === "object"){
-      if(ESCAPP.isStateNewestThan(erState,erStateBeforeEvent)){
+      if((isRemoteStateNewestForApp)&&(ESCAPP.isStateNewestThan(erState,localErStateBeforeEvent))){
         if(typeof ESCAPP.getSettings().onNewErStateCallback === "function"){
           ESCAPP.getSettings().onNewErStateCallback(erState);
         }
