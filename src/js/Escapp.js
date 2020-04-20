@@ -57,6 +57,7 @@ export default function ESCAPP(options){
     requiredPuzzlesIds: undefined,
     forceValidation: true,
     notifications: true,
+    timeSecondaryNotifications: 3,
     rtc: true,
     user: {
       email: undefined,

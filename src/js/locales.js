@@ -42,6 +42,7 @@ export let ESCAPP_LOCALES = {
     "i.notification_ranking_3": "Very good #{team}! You are third in the leaderboard",
     "i.notification_ranking_up": "#{team} has advanced to position number #{position} in the leaderboard!",
     "i.notification_ranking_down": "#{team} is now at position number #{position} in the leaderboard",
+    "i.notification_ranking_same": "#{team} continues at position number #{position} in the leaderboard",
     
     "i.notsupported_title":"Unsupported web browser",
     "i.notsupported_text":"We are sorry. Your web browser does not allow to perform this activity. Try a different browser.",
@@ -89,6 +90,7 @@ export let ESCAPP_LOCALES = {
     "i.notification_ranking_3": "¡Muy bien #{team}! Vais terceros en la clasificación",
     "i.notification_ranking_up": "¡#{team} ha avanzado a la #{position}º posición de la clasificación!",
     "i.notification_ranking_down": "#{team} ahora ocupa la #{position}º posición de la clasificación",
+    "i.notification_ranking_same": "#{team} continua en la #{position}º posición de la clasificación",
 
     "i.notsupported_title":"Navegador web no soportado",
     "i.notsupported_text":"Lo sentimos. Su navegador web no permite realizar esta actividad. Pruebe con otro navegador.",

@@ -8,13 +8,14 @@ let SERVER_URL;
 let ESCAPE_ROOM_ID;
 let TEAM_ID;
 let TEAM_NAME;
+let TIME_SECONDARY_NOTIFICATIONS;
 let io = IO;
 let socket;
 let state = {
   connected: false,
   connectedTeamMembers: {},
   ranking: undefined,
-  allowSecondaryNotifications: true,
+  allowSecondaryRankingNotifications: true,
 }
 
 export function init(options = {}){
@@ -56,6 +57,7 @@ export function connect(userCredentials,initialSettings){
 
   TEAM_ID = initialSettings.localErState.teamId;
   TEAM_NAME = initialSettings.teamName;
+  TIME_SECONDARY_NOTIFICATIONS = initialSettings.timeSecondaryNotifications;
   state.ranking = initialSettings.localErState.ranking;
 
   let connectionQuery = {
@@ -109,11 +111,17 @@ function onMemberJoin(member){
   let memberEmail = member.username;
   let settings = ESCAPP.getSettings();
 
+  if(memberEmail === settings.user.email){
+    return;
+  }
+
   if(settings.localErState.teamMembers.indexOf(memberEmail)!==-1){
     if(typeof state.connectedTeamMembers[memberEmail] === "undefined"){
       state.connectedTeamMembers[memberEmail] = 1;
       let memberName = ESCAPP.getMemberNameFromERState(settings.localErState,memberEmail);
-      displayOnMemberJoinNotification(memberName);
+      if(typeof memberName === "string"){
+        displayOnMemberJoinNotification(memberName);
+      }
     } else if(typeof state.connectedTeamMembers[memberEmail] === "number"){
       state.connectedTeamMembers[memberEmail] = state.connectedTeamMembers[memberEmail] + 1;
     }
@@ -201,46 +209,50 @@ function updateRanking(ranking){
   let prevPosition = getTeamPositionFromRanking(pRanking);
   let newPosition = getTeamPositionFromRanking(ranking);
 
-  if(typeof newPosition !== "number"){
+  if((typeof newPosition !== "number")||(typeof TEAM_NAME !== "string")){
     return;
   }
 
+  let differentPosition = (newPosition !== prevPosition);
+  let betterPosition = (newPosition > prevPosition);
+
   let notificationMessage = undefined;
+  let isSecondaryNotification = (betterPosition===false);
 
-  if(prevPosition !== newPosition){
-    let betterPosition = (newPosition > prevPosition);
-    switch(newPosition){
-      case 1:
-        notificationMessage = I18n.getTrans("i.notification_ranking_1", {team: TEAM_NAME, position: newPosition});
-        break;
-      case 2:
-        notificationMessage = I18n.getTrans("i.notification_ranking_2", {team: TEAM_NAME, position: newPosition});
-        break;
-      case 3:
-        notificationMessage = I18n.getTrans("i.notification_ranking_3", {team: TEAM_NAME, position: newPosition});
-        break;
-      default:
-        if(betterPosition){
-          notificationMessage = I18n.getTrans("i.notification_ranking_up", {team: TEAM_NAME, position: newPosition});
-        } else {
-          notificationMessage = I18n.getTrans("i.notification_ranking_down", {team: TEAM_NAME, position: newPosition});
-        }
-        break;
-    }
-
-    if(betterPosition===false){
-      //Prevent notification overflood
-      if(state.allowSecondaryNotifications === false){
-        notificationMessage = undefined;
+  switch(newPosition){
+    case 1:
+      notificationMessage = I18n.getTrans("i.notification_ranking_1", {team: TEAM_NAME, position: newPosition});
+      break;
+    case 2:
+      notificationMessage = I18n.getTrans("i.notification_ranking_2", {team: TEAM_NAME, position: newPosition});
+      break;
+    case 3:
+      notificationMessage = I18n.getTrans("i.notification_ranking_3", {team: TEAM_NAME, position: newPosition});
+      break;
+    default:
+      if(betterPosition){
+        notificationMessage = I18n.getTrans("i.notification_ranking_up", {team: TEAM_NAME, position: newPosition});
+      } else if(differentPosition){
+        notificationMessage = I18n.getTrans("i.notification_ranking_down", {team: TEAM_NAME, position: newPosition});
+      } else {
+        //prevPosition === newPosition
+        notificationMessage = I18n.getTrans("i.notification_ranking_same", {team: TEAM_NAME, position: newPosition});
       }
-    }
+      break;
   }
 
+  if(isSecondaryNotification){
+    //Prevent notification overflood
+    if(state.allowSecondaryRankingNotifications === false){
+      notificationMessage = undefined;
+    }
+  }
+  
   if(typeof notificationMessage === "string"){
-    state.allowSecondaryNotifications = false;
+    state.allowSecondaryRankingNotifications = false;
     setTimeout(function(){
-      state.allowSecondaryNotifications = true;
-    },60000);
+      state.allowSecondaryRankingNotifications = true;
+    },TIME_SECONDARY_NOTIFICATIONS * 60000);
     displayRankingNotification(notificationMessage);
   }
 };
