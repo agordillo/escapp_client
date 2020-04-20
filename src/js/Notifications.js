@@ -5,6 +5,7 @@ import './notify.js';
 import '../css/notifications.scss';
 
 let initialized = false;
+let enabled = false;
 let imagesPath;
 
 let hideTimer;
@@ -16,10 +17,15 @@ export function init(options){
 		return;
 	}
 	initialized = true;
+	enabled = options.enabled;
 	imagesPath = options.imagesPath || "/assets/images/";
 }
 
 export function displayNotification(options = {}){
+	if(enabled !== true){
+      return;
+    }
+
 	if((typeof options !== "object")||(typeof options.text !== "string")||(options.text.trim() === "")){
 		return;
 	}

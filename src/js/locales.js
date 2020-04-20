@@ -31,7 +31,7 @@ export let ESCAPP_LOCALES = {
 
     "i.notification_start": "The Escape Room begins. Good luck #{team}!",
     "i.notification_member_join": "#{member} has joined the Escape Room",
-    "i.notification_member_left": "#{member} has left the Escape Room",
+    "i.notification_member_leave": "#{member} has left the Escape Room",
     "i.notification_hint_new": "Your team has obtained a new hint. Access the Escapp platform to read it.",
     "i.notification_puzzle_success": "Your team has solved a new puzzle.",
     "i.notification_puzzle_success_end1": "¡Good job #{team}!",
@@ -78,7 +78,7 @@ export let ESCAPP_LOCALES = {
       
     "i.notification_start": "Empieza la Escape Room. ¡Suerte #{team}!",
     "i.notification_member_join": "#{member} se ha unido a la Escape Room",
-    "i.notification_member_left": "#{member} ha abandonado la Escape Room",
+    "i.notification_member_leave": "#{member} ha abandonado la Escape Room",
     "i.notification_hint_new": "Tu equipo ha conseguido una nueva pista. Accede a la plataforma Escapp para consultarla.",
     "i.notification_puzzle_success": "Tu equipo ha superado un nuevo reto.",
     "i.notification_puzzle_success_end1": "¡Buen trabajo #{team}!",

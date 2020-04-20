@@ -56,6 +56,8 @@ export default function ESCAPP(options){
     appPuzzleIds: undefined,
     requiredPuzzlesIds: undefined,
     forceValidation: true,
+    notifications: true,
+    rtc: true,
     user: {
       email: undefined,
       password: undefined,
@@ -85,7 +87,7 @@ export default function ESCAPP(options){
     LocalStorage.init(settings.localStorageKey);
     Encrypt.init(settings.encryptKey);
     Dialogs.init({imagesPath: settings.imagesPath});
-    Notifications.init({imagesPath: settings.imagesPath});
+    Notifications.init({enabled: settings.notifications, imagesPath: settings.imagesPath});
     Animations.init({imagesPath: settings.imagesPath});
     Events.init({endpoint: settings.endpoint, imagesPath: settings.imagesPath, escapp: this});
 
@@ -493,7 +495,7 @@ export default function ESCAPP(options){
   };
 
   this.afterValidateUser = function(){
-     this.connect();
+    this.connect();
   };
 
   this.validatePreviousPuzzles = function(callback){
@@ -686,6 +688,9 @@ export default function ESCAPP(options){
   };
 
   this.connect = function(){
+    if(settings.rtc !== true){
+      return;
+    }
     let userCredentials = this.getUserCredentials(settings.user);
     if(typeof userCredentials !== "undefined"){
       Events.connect(userCredentials,settings);

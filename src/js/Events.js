@@ -12,7 +12,7 @@ let io = IO;
 let socket;
 let state = {
   connected: false,
-  connectedTeamMembers: [],
+  connectedTeamMembers: {},
   ranking: undefined,
   allowSecondaryNotifications: true,
 }
@@ -71,6 +71,7 @@ function loadSocketEvents(socket){
   socket.on("connect",onConnect);
   socket.on("disconnect", onDisconnect);
   socket.on('JOIN', onMemberJoin);
+  socket.on('LEAVE', onMemberLeave);
   socket.on('HINT_RESPONSE', onNewHint);
   socket.on('PUZZLE_RESPONSE', onPuzzleResponse);
   socket.on('TEAM_PROGRESS', onNewRanking);
@@ -108,10 +109,37 @@ function onMemberJoin(member){
   let memberEmail = member.username;
   let settings = ESCAPP.getSettings();
 
-  if((state.connectedTeamMembers.indexOf(memberEmail)===-1)&&(settings.localErState.teamMembers.indexOf(memberEmail)!==-1)){
-    state.connectedTeamMembers.push(memberEmail);
-    let memberName = ESCAPP.getMemberNameFromERState(settings.localErState,memberEmail);
-    displayOnMemberJoinNotification(memberName);
+  if(settings.localErState.teamMembers.indexOf(memberEmail)!==-1){
+    if(typeof state.connectedTeamMembers[memberEmail] === "undefined"){
+      state.connectedTeamMembers[memberEmail] = 1;
+      let memberName = ESCAPP.getMemberNameFromERState(settings.localErState,memberEmail);
+      displayOnMemberJoinNotification(memberName);
+    } else if(typeof state.connectedTeamMembers[memberEmail] === "number"){
+      state.connectedTeamMembers[memberEmail] = state.connectedTeamMembers[memberEmail] + 1;
+    }
+  }
+};
+
+function onMemberLeave(member){
+  if((typeof member !== "object")||(typeof member.username !== "string")){
+    return;
+  }
+
+  //A member of my team left the Escape Room
+  let memberEmail = member.username;
+  let settings = ESCAPP.getSettings();
+
+  if(settings.localErState.teamMembers.indexOf(memberEmail)!==-1){
+    if(typeof state.connectedTeamMembers[memberEmail] === "number"){
+      state.connectedTeamMembers[memberEmail] = state.connectedTeamMembers[memberEmail] - 1;
+      if(state.connectedTeamMembers[memberEmail] === 0){
+        delete state.connectedTeamMembers[memberEmail];
+        let memberName = ESCAPP.getMemberNameFromERState(settings.localErState,memberEmail);
+        displayOnMemberLeaveNotification(memberName);
+      }
+    } else if(typeof state.connectedTeamMembers[memberEmail] === "undefined"){
+      //Do nothing
+    }
   }
 };
 
@@ -247,6 +275,12 @@ function getTeamPositionFromRanking(ranking){
 function displayOnMemberJoinNotification(memberName){
   let notificationOptions = {type: "info"};
   notificationOptions.text = I18n.getTrans("i.notification_member_join", {member: memberName});
+  ESCAPP.displayCustomNotification(notificationOptions.text, notificationOptions);
+};
+
+function displayOnMemberLeaveNotification(memberName){
+  let notificationOptions = {type: "info"};
+  notificationOptions.text = I18n.getTrans("i.notification_member_leave", {member: memberName});
   ESCAPP.displayCustomNotification(notificationOptions.text, notificationOptions);
 };
 
