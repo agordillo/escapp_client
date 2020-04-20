@@ -80,6 +80,10 @@ export function validateString(str){
   return ((typeof str === "string")&&(str.trim()!==""));
 };
 
+export function generateRandomNumber(min,max){
+  return Math.floor(Math.random()*(max-min+1)+min);
+}
+
 export function debug(msg){
   if(typeof msg === "object"){
     console.log("ESCAPP: [Object]");

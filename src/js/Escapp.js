@@ -39,6 +39,7 @@ export default function ESCAPP(options){
   //Default options
   let defaults = {
     initCallback: undefined,
+    onNewErStateCallback: undefined,
     endpoint: undefined,
     localStorageKey: "ESCAPP",
     encryptKey: undefined,
@@ -86,7 +87,7 @@ export default function ESCAPP(options){
     Dialogs.init({imagesPath: settings.imagesPath});
     Notifications.init({imagesPath: settings.imagesPath});
     Animations.init({imagesPath: settings.imagesPath});
-    Events.init({endpoint: settings.endpoint, imagesPath: settings.imagesPath});
+    Events.init({endpoint: settings.endpoint, imagesPath: settings.imagesPath, escapp: this});
 
     //Get user from LocalStorage
     let user = LocalStorage.getSetting("user");
@@ -492,7 +493,7 @@ export default function ESCAPP(options){
   };
 
   this.afterValidateUser = function(){
-    this.connect();
+     this.connect();
   };
 
   this.validatePreviousPuzzles = function(callback){
@@ -676,17 +677,6 @@ export default function ESCAPP(options){
     return ((typeof erState === "object")&&(erState.puzzlesSolved instanceof Array));
   };
 
-  this.getTeamNameFromERState = function(erState){
-    if((typeof erState.teamId === "number")&&(erState.ranking instanceof Array)){
-      for(let i=0; i<erState.ranking.length; i++){
-        if(erState.ranking[i].id === erState.teamId){
-          return erState.ranking[i].name;
-        }
-      }
-    }
-    return undefined;
-  };
-
   this.getEscappPlatformURL = function(){
     return settings.endpoint.replace("/api","");
   };
@@ -698,9 +688,50 @@ export default function ESCAPP(options){
   this.connect = function(){
     let userCredentials = this.getUserCredentials(settings.user);
     if(typeof userCredentials !== "undefined"){
-      Events.connect(userCredentials);
+      Events.connect(userCredentials,settings);
     }
   };
+
+  this.getTeamNameFromERState = function(erState){
+    let team = this.getTeamFromERState(erState);
+    return (typeof team === "object") ? team.name : undefined;
+  };
+
+  this.getMemberNameFromERState = function(erState,memberEmail){
+    let team = this.getTeamFromERState(erState);
+    if((typeof team === "undefined")||(!(team.teamMembers instanceof Array))){
+      return undefined;
+    }
+    for(let i=0; i<team.teamMembers.length; i++){
+      if(team.teamMembers[i].username === memberEmail){
+        return team.teamMembers[i].name; //+team.teamMembers[i].surname
+      }
+    }
+    return undefined;
+  };
+
+  this.getTeamFromERState = function(erState){
+    return this.getTeamFromRanking(erState.teamId,erState.ranking);
+  };
+
+  this.getTeamFromRanking = function(teamId,ranking){
+    if((typeof teamId === "number")&&(ranking instanceof Array)){
+      for(let i=0; i<ranking.length; i++){
+        if(ranking[i].id === teamId){
+          return ranking[i];
+        }
+      }
+    }
+    return undefined;
+  };
+
+  //////////////////
+  // Utils for subcomponents
+  //////////////////
+  this.getSettings = function(){
+    return settings;
+  };
+
 
   //////////////////
   // UI

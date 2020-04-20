@@ -1,20 +1,28 @@
-import * as Notifications from './Notifications.js';
 import * as I18n from './I18n.js';
+import * as Utils from './Utils.js';
 import IO from './socket.io';
 
 let initialized = false;
+let ESCAPP;
 let SERVER_URL;
 let ESCAPE_ROOM_ID;
+let TEAM_ID;
+let TEAM_NAME;
 let io = IO;
 let socket;
-let connected = false;
+let state = {
+  connected: false,
+  connectedTeamMembers: [],
+  ranking: undefined,
+  allowSecondaryNotifications: true,
+}
 
-export function init(options){
+export function init(options = {}){
   if(initialized === true){
     return;
   }
   initialized = true;
-  Notifications.init({imagesPath: options.imagesPath});
+  ESCAPP = options.escapp;
 
   let domain = getEscappPlatformDomain(options.endpoint);
   if(typeof domain !== "undefined"){
@@ -40,7 +48,16 @@ function getEscappPlatformERId(endpoint){
 // Socket management
 /////////////////////
 
-export function connect(userCredentials){
+export function connect(userCredentials,initialSettings){
+  if(state.connected===true){
+    //Prevent multiple connections
+    return;
+  }
+
+  TEAM_ID = initialSettings.localErState.teamId;
+  TEAM_NAME = initialSettings.teamName;
+  state.ranking = initialSettings.localErState.ranking;
+
   let connectionQuery = {
     "escapeRoom": ESCAPE_ROOM_ID,
     "email": userCredentials.email,
@@ -48,7 +65,7 @@ export function connect(userCredentials){
   };
   socket = io(SERVER_URL, {query: connectionQuery});
   loadSocketEvents(socket);
-}
+};
 
 function loadSocketEvents(socket){
   socket.on("connect",onConnect);
@@ -65,28 +82,188 @@ function loadSocketEvents(socket){
   socket.on("error", (err)=>{
     // console.log("SocketIO: error");
   });
-}
+};
+
+
+/////////////////////
+// Socket Escapp events
+/////////////////////
 
 function onConnect(){
-  connected = true;
-}
+  state.connected = true;
+  // console.log("OnConnected");
+};
 
 function onDisconnect(){
-  connected = false;
-}
+  state.connected = false;
+  // console.log("OnDisconnected");
+};
 
-function onMemberJoin(username){
-  console.log("onMemberJoin");
-}
+function onMemberJoin(member){
+  if((typeof member !== "object")||(typeof member.username !== "string")){
+    return;
+  }
 
-function onNewHint(code, authentication, participation, hintOrder, puzzleOrder, category, msg){
-  console.log("onNewHint");
-}
+  //A new member of my team joined the Escape Room
+  let memberEmail = member.username;
+  let settings = ESCAPP.getSettings();
 
-function onPuzzleResponse(code, correctAnswer, puzzleOrder, participation, authentication, msg, erState){
-  console.log("onPuzzleResponse");
-}
+  if((state.connectedTeamMembers.indexOf(memberEmail)===-1)&&(settings.localErState.teamMembers.indexOf(memberEmail)!==-1)){
+    state.connectedTeamMembers.push(memberEmail);
+    let memberName = ESCAPP.getMemberNameFromERState(settings.localErState,memberEmail);
+    displayOnMemberJoinNotification(memberName);
+  }
+};
 
-function onNewRanking(teamId, puzzleOrder, ranking){
-  console.log("onNewRanking");
-}
+function onNewHint(res){
+  if(typeof res.msg !== "string"){
+    return;
+  }
+  //My team obtained a new hint
+  let hint = res.msg;
+  displayOnNewHintNotification(hint);
+};
+
+function onPuzzleResponse(res){
+  if(res.code === "OK"){
+    ESCAPP.updateRemoteErState(res.erState);
+    displayOnPuzzleSuccessNotification();
+    setTimeout(function(){
+      onNewErState(res.erState);
+    },2000);
+  }
+};
+
+function onNewRanking(data){
+  if((typeof data === "object")&&(data.ranking instanceof Array)){
+    updateRanking(data.ranking);
+  }
+};
+
+
+//////////////////
+// Utils for managing escapp events
+//////////////////
+
+function onNewErState(erState){
+  let erStateBeforeEvent = Object.assign({},ESCAPP.getSettings().localErState);
+  ESCAPP.validateStateToRestore(function(erState){
+    if(typeof erState === "object"){
+      if(ESCAPP.isStateNewestThan(erState,erStateBeforeEvent)){
+        if(typeof ESCAPP.getSettings().onNewErStateCallback === "function"){
+          ESCAPP.getSettings().onNewErStateCallback(erState);
+        }
+      }
+    }
+  });
+};
+
+function updateRanking(ranking){
+  let pRanking = undefined;
+  if(typeof state.ranking !== "undefined"){
+    pRanking = Object.assign([],state.ranking);
+  }
+  //Update previous ranking
+  state.ranking = ranking;
+
+  if(isRankingEmpty(ranking)){
+    return;
+  }
+
+  let prevPosition = getTeamPositionFromRanking(pRanking);
+  let newPosition = getTeamPositionFromRanking(ranking);
+
+  if(typeof newPosition !== "number"){
+    return;
+  }
+
+  let notificationMessage = undefined;
+
+  if(prevPosition !== newPosition){
+    let betterPosition = (newPosition > prevPosition);
+    switch(newPosition){
+      case 1:
+        notificationMessage = I18n.getTrans("i.notification_ranking_1", {team: TEAM_NAME, position: newPosition});
+        break;
+      case 2:
+        notificationMessage = I18n.getTrans("i.notification_ranking_2", {team: TEAM_NAME, position: newPosition});
+        break;
+      case 3:
+        notificationMessage = I18n.getTrans("i.notification_ranking_3", {team: TEAM_NAME, position: newPosition});
+        break;
+      default:
+        if(betterPosition){
+          notificationMessage = I18n.getTrans("i.notification_ranking_up", {team: TEAM_NAME, position: newPosition});
+        } else {
+          notificationMessage = I18n.getTrans("i.notification_ranking_down", {team: TEAM_NAME, position: newPosition});
+        }
+        break;
+    }
+
+    if(betterPosition===false){
+      //Prevent notification overflood
+      if(state.allowSecondaryNotifications === false){
+        notificationMessage = undefined;
+      }
+    }
+  }
+
+  if(typeof notificationMessage === "string"){
+    state.allowSecondaryNotifications = false;
+    setTimeout(function(){
+      state.allowSecondaryNotifications = true;
+    },60000);
+    displayRankingNotification(notificationMessage);
+  }
+};
+
+function isRankingEmpty(ranking){
+  if(ranking instanceof Array){
+    for(let i=0; i<ranking.length; i++){
+      if(ranking[i].count > 0){
+        return false;
+      }
+    }
+  }
+  return true;
+};
+
+function getTeamPositionFromRanking(ranking){
+  if((typeof TEAM_ID === "number")&&(ranking instanceof Array)){
+    for(let i=0; i<ranking.length; i++){
+      if(ranking[i].id === TEAM_ID){
+        return i+1;
+      }
+    }
+  }
+  return undefined;
+};
+
+
+///////////////
+// Notifications
+///////////////
+
+function displayOnMemberJoinNotification(memberName){
+  let notificationOptions = {type: "info"};
+  notificationOptions.text = I18n.getTrans("i.notification_member_join", {member: memberName});
+  ESCAPP.displayCustomNotification(notificationOptions.text, notificationOptions);
+};
+
+function displayOnNewHintNotification(hint){
+  let notificationOptions = {type: "event", autoHide: true};
+  notificationOptions.text = I18n.getTrans("i.notification_hint_new", {hint: hint});
+  ESCAPP.displayCustomNotification(notificationOptions.text, notificationOptions);
+};
+
+function displayOnPuzzleSuccessNotification(puzzle){
+  let notificationOptions = {type: "event"};
+  let rndEndMessage = Utils.generateRandomNumber(1,3);
+  notificationOptions.text = I18n.getTrans("i.notification_puzzle_success", {puzzle: puzzle}) + " " + I18n.getTrans(("i.notification_puzzle_success_end" + rndEndMessage), {team: TEAM_NAME});
+  ESCAPP.displayCustomNotification(notificationOptions.text, notificationOptions);
+};
+
+function displayRankingNotification(msg){
+  let notificationOptions = {type: "ranking"};
+  ESCAPP.displayCustomNotification(msg, notificationOptions);
+};
