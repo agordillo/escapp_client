@@ -28,10 +28,22 @@ export function init(options = {}){
   ESCAPP = options.escapp;
 };
 
+export function getTimeRunout(){
+  return TIME_RUNOUT;
+}
+
 export function startTimer(initTime){
-  if((enabled !== true)||(typeof initTime !== "number")||(initTime <= 0)){
+  if(typeof initTime !== "number"){
     return;
   }
+  if(initTime <= 0){
+    TIME_RUNOUT = true;
+    return;
+  }
+  if(enabled !== true){
+    return;
+  }
+
   CURRENT_TIME = initTime;
 
   // For development
@@ -145,6 +157,9 @@ function showNotification(){
     return;
   }
   if(Math.abs(CURRENT_TIME - ER_DURATION) < 30){
+    return;
+  }
+  if(ESCAPP.isERCompleted()===true){
     return;
   }
 

@@ -742,6 +742,18 @@ export default function ESCAPP(options){
     return settings;
   };
 
+  this.isEREnded = function(){
+    return ((this.isERCompleted())||(Countdown.getTimeRunout()));
+  };
+
+  this.isERCompleted = function(){
+    let erState = this.getNewestState();
+    if((this.validateERState(erState))&&(erState.puzzlesSolved instanceof Array)&&(typeof erState.nPuzzles === "number")){
+      return (erState.puzzlesSolved.length === erState.nPuzzles);
+    }
+    return false;
+  };
+
 
   //////////////////
   // UI
