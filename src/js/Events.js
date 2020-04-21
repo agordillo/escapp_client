@@ -32,7 +32,7 @@ export function init(options = {}){
     SERVER_URL = 'wss://' + getEscappPlatformDomain(options.endpoint);
     ESCAPE_ROOM_ID = getEscappPlatformERId(options.endpoint);
   }
-}
+};
 
 function getEscappPlatformDomain(endpoint){
   let domain;

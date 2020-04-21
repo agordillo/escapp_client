@@ -19,6 +19,7 @@ import * as Dialogs from './Dialogs.js';
 import * as Notifications from './Notifications.js';
 import * as Animations from './Animations.js';
 import * as Events from './Events.js';
+import * as Countdown from './Countdown.js';
 
 let DEFAULT_ESCAPP_ER_STATE = {
   puzzlesSolved: [], 
@@ -69,7 +70,7 @@ export default function ESCAPP(options){
     localErState: undefined,
     remoteErState: undefined,
     teamName: undefined,
-    timeRunOut: false,
+    countdown: true,
     puzzlesRequirements: true,
   };
 
@@ -92,6 +93,7 @@ export default function ESCAPP(options){
     Notifications.init({enabled: settings.notifications, imagesPath: settings.imagesPath});
     Animations.init({imagesPath: settings.imagesPath});
     Events.init({endpoint: settings.endpoint, imagesPath: settings.imagesPath, escapp: this});
+    Countdown.init({enabled: ((Notifications.isEnabled())&&(settings.countdown)), escapp: this});
 
     //Get user from LocalStorage
     let user = LocalStorage.getSetting("user");
@@ -498,7 +500,7 @@ export default function ESCAPP(options){
 
   this.afterValidateUser = function(){
     this.connect();
-    this.startCountdownTimer();
+    Countdown.startTimer(settings.localErState.remainingTime);
   };
 
   this.validatePreviousPuzzles = function(callback){
@@ -583,7 +585,7 @@ export default function ESCAPP(options){
 
     //Add data from remoteErState to the localErState
     //These data must be integrated into the localErState even the user rejects to restore the state
-    let erStateKeys = ["nPuzzles","hintsAllowed","startTime","remainingTime","teamId","teamMembers","ranking"];
+    let erStateKeys = ["nPuzzles","hintsAllowed","startTime","remainingTime","duration","teamId","teamMembers","ranking"];
     for(let i=0; i<erStateKeys.length; i++){
       if((typeof settings.localErState[erStateKeys[i]] === "undefined")&&(typeof remoteErState[erStateKeys[i]] !== "undefined")){
         settings.localErState[erStateKeys[i]] = remoteErState[erStateKeys[i]];
@@ -697,101 +699,6 @@ export default function ESCAPP(options){
     let userCredentials = this.getUserCredentials(settings.user);
     if(typeof userCredentials !== "undefined"){
       Events.connect(userCredentials,settings);
-    }
-  };
-
-  this.startCountdownTimer = function(){
-    // For development
-    // settings.localErState.remainingTime = 2*60 + 0*60*60 + 5;
-    let countDownTimer = setInterval(function(){
-      settings.localErState.remainingTime = Math.max(0,settings.localErState.remainingTime - 10);
-      if(settings.localErState.remainingTime === 0){
-        settings.timeRunOut = true;
-        clearInterval(countDownTimer);
-        this.showCountdownNotification();
-      }
-    }.bind(this),10 * 1000);
-    this.startCountdownNotification();
-  };
-
-  this.startCountdownNotification = function(){
-    if(Notifications.isEnabled() !== true){
-      return;
-    }
-    if((typeof settings.localErState.remainingTime !== "number")||(settings.timeRunOut === true)){
-      return;
-    }
-
-    let delay = undefined;
-    let rTimeInHours = settings.localErState.remainingTime/3600;
-    
-    if(rTimeInHours >= 2){
-      //Send notification on next hour
-      let hoursToNextHour = (rTimeInHours - Math.floor(rTimeInHours));
-      delay = hoursToNextHour*3600; //secondsToNextHour
-    } else {
-      //hoursToNextHour < 2
-      let rTimeInMinutes = settings.localErState.remainingTime/60;
-      let timesInMinutes = [0,1,2,5,10,15,30,45,60,90].sort(function(a,b,){return b-a});
-      for(let t=0; t<timesInMinutes.length; t++){
-        if(rTimeInMinutes >= timesInMinutes[t]){
-          delay = (rTimeInMinutes - timesInMinutes[t])*60; //secondsTotimesInMinutes[t]
-          break;
-        }
-      }
-    }
-
-    if(typeof delay === "number"){
-      setTimeout(function(){
-        this.showCountdownNotification();
-        setTimeout(function(){
-          this.startCountdownNotification();
-        }.bind(this),30*1000);
-      }.bind(this), delay*1000);
-    }
-  };
-
-  this.showCountdownNotification = function(){
-    if(typeof settings.localErState.remainingTime !== "number"){
-      return;
-    }
-
-    let text = undefined;
-    let rTimeInHours = settings.localErState.remainingTime/3600;
-    let hours = Math.floor(rTimeInHours);
-    let minutes = Math.floor((rTimeInHours - hours)*60);
-    let seconds = (rTimeInHours - hours)*3600;
-
-    if(hours > 0){
-      if(minutes === 0){
-        //Only hour
-        if(hours === 1){
-          text = I18n.getTrans("i.notification_time_one_hour");
-        } else {
-          text = I18n.getTrans("i.notification_time_hours",{hours: hours});
-        } 
-      } else {
-        //Hour and minutes
-        text = I18n.getTrans("i.notification_time_hours_and_minutes",{hours: hours, minutes: minutes});
-      }
-    } else {
-      if(minutes > 0){
-        //Only minutes
-        if(minutes === 1){
-          text = I18n.getTrans("i.notification_time_one_minute");
-        } else {
-          text = I18n.getTrans("i.notification_time_minutes",{minutes: minutes});
-        }
-      } else if(minutes === 0){
-        //Time run out
-        if(settings.timeRunOut === true){
-          text = I18n.getTrans("i.notification_time_runout");
-        }
-      }
-    }
-
-    if(typeof text === "string"){
-      this.displayCustomNotification(text, {type: "time"});
     }
   };
 
