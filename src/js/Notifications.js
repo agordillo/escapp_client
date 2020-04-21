@@ -50,7 +50,7 @@ export function displayNotification(options = {}){
     options.type = "event";
   }
 
-  if(["ranking","info","warning","event"].indexOf(options.type)===-1){
+  if(["ranking","info","warning","event","time","error"].indexOf(options.type)===-1){
     options.type = "event";
   }
   switch(options.type){
@@ -62,6 +62,10 @@ export function displayNotification(options = {}){
       return displayWarningNotification(options);
     case "event":
       return displayEventNotification(options);
+    case "time":
+      return displayTimeNotification(options);
+    case "error":
+      return displayErrorNotification(options);
     default:
       return;
   }
@@ -92,6 +96,21 @@ function displayWarningNotification(options = {}){
 function displayEventNotification(options = {}){
   let notificationOptions = Utils.deepMerge(options,{
     className: 'event',
+  });
+  return _displayNotification(notificationOptions);
+};
+
+function displayTimeNotification(options = {}){
+  let notificationOptions = Utils.deepMerge(options,{
+    className: 'time',
+  });
+  return _displayNotification(notificationOptions);
+};
+
+function displayErrorNotification(options = {}){
+  let notificationOptions = Utils.deepMerge(options,{
+    className: 'error',
+    autoHide: false,
   });
   return _displayNotification(notificationOptions);
 };
