@@ -44,6 +44,13 @@ export let ESCAPP_LOCALES = {
     "i.notification_ranking_down": "#{team} is now at position number #{position} in the leaderboard",
     "i.notification_ranking_same": "#{team} continues at position number #{position} in the leaderboard",
     
+    "i.notification_time_hours_and_minutes": "#{hours}:#{minutes} to run out of time",
+    "i.notification_time_hours": "#{hours} hours to run out of time",
+    "i.notification_time_one_hour": "1 hour to run out of time",
+    "i.notification_time_minutes": "#{minutes} minutes to run out of time",
+    "i.notification_time_one_minute": "1 minute to run out of time",
+    "i.notification_time_runout": "Time is up!",
+
     "i.notsupported_title":"Unsupported web browser",
     "i.notsupported_text":"We are sorry. Your web browser does not allow to perform this activity. Try a different browser.",
   },
@@ -91,6 +98,13 @@ export let ESCAPP_LOCALES = {
     "i.notification_ranking_up": "¡#{team} ha avanzado a la #{position}º posición de la clasificación!",
     "i.notification_ranking_down": "#{team} ahora ocupa la #{position}º posición de la clasificación",
     "i.notification_ranking_same": "#{team} continua en la #{position}º posición de la clasificación",
+
+    "i.notification_time_hours_and_minutes": "Falta #{hours}:#{minutes} para que se agote el tiempo",
+    "i.notification_time_hours": "Faltan #{hours} horas para que se agote el tiempo",
+    "i.notification_time_one_hour": "Falta 1 hora para que se agote el tiempo",
+    "i.notification_time_minutes": "Faltan #{minutes} minutos para que se agote el tiempo",
+    "i.notification_time_one_minute": "Falta 1 minuto para que se agote el tiempo",
+    "i.notification_time_runout": "¡Se ha agotado el tiempo!",
 
     "i.notsupported_title":"Navegador web no soportado",
     "i.notsupported_text":"Lo sentimos. Su navegador web no permite realizar esta actividad. Pruebe con otro navegador.",

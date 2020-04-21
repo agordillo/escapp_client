@@ -37,6 +37,10 @@ export function init(options){
   });
 }
 
+export function isEnabled(){
+  return enabled;
+};
+
 export function displayNotification(options = {}){
   if(enabled !== true){
     return;

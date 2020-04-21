@@ -69,6 +69,7 @@ export default function ESCAPP(options){
     localErState: undefined,
     remoteErState: undefined,
     teamName: undefined,
+    timeRunOut: false,
     puzzlesRequirements: true,
   };
 
@@ -497,6 +498,7 @@ export default function ESCAPP(options){
 
   this.afterValidateUser = function(){
     this.connect();
+    this.startCountdownTimer();
   };
 
   this.validatePreviousPuzzles = function(callback){
@@ -695,6 +697,101 @@ export default function ESCAPP(options){
     let userCredentials = this.getUserCredentials(settings.user);
     if(typeof userCredentials !== "undefined"){
       Events.connect(userCredentials,settings);
+    }
+  };
+
+  this.startCountdownTimer = function(){
+    // For development
+    // settings.localErState.remainingTime = 2*60 + 0*60*60 + 5;
+    let countDownTimer = setInterval(function(){
+      settings.localErState.remainingTime = Math.max(0,settings.localErState.remainingTime - 10);
+      if(settings.localErState.remainingTime === 0){
+        settings.timeRunOut = true;
+        clearInterval(countDownTimer);
+        this.showCountdownNotification();
+      }
+    }.bind(this),10 * 1000);
+    this.startCountdownNotification();
+  };
+
+  this.startCountdownNotification = function(){
+    if(Notifications.isEnabled() !== true){
+      return;
+    }
+    if((typeof settings.localErState.remainingTime !== "number")||(settings.timeRunOut === true)){
+      return;
+    }
+
+    let delay = undefined;
+    let rTimeInHours = settings.localErState.remainingTime/3600;
+    
+    if(rTimeInHours >= 2){
+      //Send notification on next hour
+      let hoursToNextHour = (rTimeInHours - Math.floor(rTimeInHours));
+      delay = hoursToNextHour*3600; //secondsToNextHour
+    } else {
+      //hoursToNextHour < 2
+      let rTimeInMinutes = settings.localErState.remainingTime/60;
+      let timesInMinutes = [0,1,2,5,10,15,30,45,60,90].sort(function(a,b,){return b-a});
+      for(let t=0; t<timesInMinutes.length; t++){
+        if(rTimeInMinutes >= timesInMinutes[t]){
+          delay = (rTimeInMinutes - timesInMinutes[t])*60; //secondsTotimesInMinutes[t]
+          break;
+        }
+      }
+    }
+
+    if(typeof delay === "number"){
+      setTimeout(function(){
+        this.showCountdownNotification();
+        setTimeout(function(){
+          this.startCountdownNotification();
+        }.bind(this),30*1000);
+      }.bind(this), delay*1000);
+    }
+  };
+
+  this.showCountdownNotification = function(){
+    if(typeof settings.localErState.remainingTime !== "number"){
+      return;
+    }
+
+    let text = undefined;
+    let rTimeInHours = settings.localErState.remainingTime/3600;
+    let hours = Math.floor(rTimeInHours);
+    let minutes = Math.floor((rTimeInHours - hours)*60);
+    let seconds = (rTimeInHours - hours)*3600;
+
+    if(hours > 0){
+      if(minutes === 0){
+        //Only hour
+        if(hours === 1){
+          text = I18n.getTrans("i.notification_time_one_hour");
+        } else {
+          text = I18n.getTrans("i.notification_time_hours",{hours: hours});
+        } 
+      } else {
+        //Hour and minutes
+        text = I18n.getTrans("i.notification_time_hours_and_minutes",{hours: hours, minutes: minutes});
+      }
+    } else {
+      if(minutes > 0){
+        //Only minutes
+        if(minutes === 1){
+          text = I18n.getTrans("i.notification_time_one_minute");
+        } else {
+          text = I18n.getTrans("i.notification_time_minutes",{minutes: minutes});
+        }
+      } else if(minutes === 0){
+        //Time run out
+        if(settings.timeRunOut === true){
+          text = I18n.getTrans("i.notification_time_runout");
+        }
+      }
+    }
+
+    if(typeof text === "string"){
+      this.displayCustomNotification(text, {type: "time"});
     }
   };
 
