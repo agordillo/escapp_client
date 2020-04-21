@@ -118,7 +118,7 @@ function startNotificationTimer(){
   } else {
     //hoursToNextHour < 2
     let rTimeInMinutes = CURRENT_TIME/60;
-    let timesInMinutes = NOTIFICATION_TIMES.sort(function(a,b,){return b-a});
+    let timesInMinutes = NOTIFICATION_TIMES.sort(function(a,b){return b-a});
     for(let t=0; t<timesInMinutes.length; t++){
       if(rTimeInMinutes >= timesInMinutes[t]){
         delay = (rTimeInMinutes - timesInMinutes[t])*60; //secondsTotimesInMinutes[t]
