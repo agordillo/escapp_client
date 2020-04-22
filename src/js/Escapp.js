@@ -58,7 +58,6 @@ export default function ESCAPP(options){
     requiredPuzzlesIds: undefined,
     forceValidation: true,
     notifications: true,
-    timeSecondaryNotifications: 3,
     rtc: true,
     user: {
       email: undefined,
@@ -70,6 +69,8 @@ export default function ESCAPP(options){
     localErState: undefined,
     remoteErState: undefined,
     teamName: undefined,
+    duration: undefined,
+    remainingTime: undefined,
     countdown: true,
     puzzlesRequirements: true,
   };
@@ -117,9 +118,6 @@ export default function ESCAPP(options){
     }
     settings.localErState = localErState;
     LocalStorage.saveSetting("localErState",settings.localErState);
-
-    //Fill some settings from erState
-    this.updateSettingsFromLocalErState();
   };
 
 
@@ -133,7 +131,7 @@ export default function ESCAPP(options){
     //Use bowser (https://github.com/lancedikson/bowser) to detect browser
     try {
       let browser = Bowser.getParser(window.navigator.userAgent);
-      // console.log(browser.getBrowser());
+      // For info: browser.getBrowser();
       isValidBrowser = browser.satisfies(settings.browserRestrictions);
       if(typeof isValidBrowser === "undefined"){
         //No rule for the browser has been specified
@@ -333,6 +331,7 @@ export default function ESCAPP(options){
       settings.user.participation = res.participation;
       LocalStorage.saveSetting("user", settings.user);
 
+      that.updateSettingsFromInitialErState(res.erState);
       that.updateRemoteErState(res.erState);
 
       if(typeof callback === "function"){
@@ -500,7 +499,7 @@ export default function ESCAPP(options){
 
   this.afterValidateUser = function(){
     this.connect();
-    Countdown.startTimer(settings.localErState.remainingTime);
+    Countdown.startTimer(settings.remainingTime,settings.duration);
   };
 
   this.validatePreviousPuzzles = function(callback){
@@ -608,19 +607,6 @@ export default function ESCAPP(options){
     if(this.validateERState(settings.localErState)){
       LocalStorage.saveSetting("localErState",settings.localErState);
     }
-
-    //Store erState data in settings
-    this.updateSettingsFromLocalErState();
-  };
-
-  this.updateSettingsFromLocalErState = function(){
-    if(this.validateERState(settings.localErState) === false){
-      return;
-    }
-    let teamName = this.getTeamNameFromERState(settings.localErState);
-    if(typeof teamName === "string"){
-      settings.teamName = teamName;
-    }
   };
 
   this.updateTrackingLocalErState = function(){
@@ -634,6 +620,22 @@ export default function ESCAPP(options){
       newScore = newScore + settings.localErState.puzzleData[pDataKeys[y]].score;
     }
     settings.localErState.score = newScore;
+  };
+
+  this.updateSettingsFromInitialErState = function(erState){
+    if(this.validateERState(erState) === false){
+      return;
+    }
+    let teamName = this.getTeamNameFromERState(erState);
+    if(typeof teamName === "string"){
+      settings.teamName = teamName;
+    }
+    if(typeof erState.duration === "number"){
+      settings.duration = erState.duration;
+    }
+    if(typeof erState.remainingTime === "number"){
+      settings.remainingTime = erState.remainingTime;
+    }
   };
 
   this.getNewestState = function(){

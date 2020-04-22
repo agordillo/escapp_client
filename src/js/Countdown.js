@@ -32,11 +32,14 @@ export function getTimeRunout(){
   return TIME_RUNOUT;
 }
 
-export function startTimer(initTime){
-  if(typeof initTime !== "number"){
+export function startTimer(currentRemainingTime, duration){
+  if(typeof CURRENT_TIME !== "undefined"){
+    return; //Already started
+  }
+  if((typeof currentRemainingTime !== "number")||(typeof duration !== "number")){
     return;
   }
-  if(initTime <= 0){
+  if((currentRemainingTime <= 0)||(duration <= 0)){
     TIME_RUNOUT = true;
     return;
   }
@@ -44,16 +47,11 @@ export function startTimer(initTime){
     return;
   }
 
-  CURRENT_TIME = initTime;
+  CURRENT_TIME = currentRemainingTime;
+  ER_DURATION = duration;
 
   // For development
   // CURRENT_TIME = 0*60*60 + 5*60 + 5;
-
-  if(typeof ESCAPP.getSettings().localErState.duration === "number"){
-    ER_DURATION = ESCAPP.getSettings().localErState.duration;
-  } else {
-    ER_DURATION = 2*60*60;
-  }
 
   //Adjust timer
   let timeInHours = CURRENT_TIME/3600;
@@ -67,7 +65,7 @@ export function startTimer(initTime){
     CURRENT_TIME = Math.max(0,CURRENT_TIME - adjustingTime);
     initTimer();
     startNotificationTimer();
-  },adjustingTime);
+  },adjustingTime*1000);
 };
 
 function initTimer(){
