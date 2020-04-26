@@ -98,6 +98,7 @@ let loadEvents = function(){
 		escapp.stopAnimation("confetti");
 	});
 	$("#ldata").click(function(){
+		puzzle_id = 0;
 		escapp.reset(function(){
 			console.log("Local data removed");
 		});

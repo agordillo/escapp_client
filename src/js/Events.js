@@ -8,7 +8,7 @@ let SERVER_URL;
 let ESCAPE_ROOM_ID;
 let TEAM_ID;
 let TEAM_NAME;
-let TIME_SECONDARY_NOTIFICATIONS = 5; //In minutes
+let TIME_SECONDARY_NOTIFICATIONS = 0.1; //In minutes
 let DELAY_FOR_RECONNECTIONS = 3000;
 let io = IO;
 let socket;
@@ -17,6 +17,7 @@ let state = {
   connectedTeamMembers: [],
   reconnectionTeamMembers: {},
   ranking: undefined,
+  firstRanking: true,
   allowSecondaryRankingNotifications: true,
 }
 
@@ -222,7 +223,7 @@ function onPuzzleResponse(res){
 };
 
 function onNewRanking(data){
-  if((typeof data === "object")&&(data.ranking instanceof Array)){
+  if((typeof data === "object")&&(data.ranking instanceof Array)&&(data.ranking.length > 0)){
     updateRanking(data.ranking, data);
   }
 };
@@ -261,44 +262,98 @@ function updateRanking(ranking, eventData){
   let prevPosition = getTeamPositionFromRanking(pRanking, TEAM_ID);
   let newPosition = getTeamPositionFromRanking(ranking, TEAM_ID);
 
-  if((typeof newPosition !== "number")||(typeof TEAM_NAME !== "string")){
+  if((typeof prevPosition !== "number")||(typeof newPosition !== "number")||(typeof TEAM_NAME !== "string")){
     return;
   }
 
-  let teamNotification = TEAM_NAME;
+  let teamNotification = TEAM_ID;
   let differentPosition = (newPosition !== prevPosition);
-  let betterPosition = (newPosition > prevPosition);
+  let samePosition = (differentPosition === false);
+  let positionUp = (newPosition < prevPosition);
+  let positionDown = (newPosition > prevPosition);
 
+  if(state.firstRanking === true){
+    differentPosition = false;
+    samePosition = false;
+    positionUp = false;
+    positionDown = false;
+    state.firstRanking = false;
+  }
+  
   let notificationMessage = undefined;
   switch(newPosition){
     case 1:
-      notificationMessage = I18n.getTrans("i.notification_ranking_1", {team: TEAM_NAME, position: newPosition});
+      if(samePosition) {
+        notificationMessage = I18n.getTrans("i.notification_ranking_1_same", {team: TEAM_NAME});
+      } else {
+        notificationMessage = I18n.getTrans("i.notification_ranking_1_up", {team: TEAM_NAME});
+      }
       break;
     case 2:
-      notificationMessage = I18n.getTrans("i.notification_ranking_2", {team: TEAM_NAME, position: newPosition});
+      if(samePosition){
+        notificationMessage = I18n.getTrans("i.notification_ranking_2_same", {team: TEAM_NAME});
+      } else if(positionDown){
+        notificationMessage = I18n.getTrans("i.notification_ranking_2_down", {teamOther: ranking[0].name, team: TEAM_NAME});
+      } else {
+        notificationMessage = I18n.getTrans("i.notification_ranking_2_up", {team: TEAM_NAME});
+      }
       break;
     case 3:
-      notificationMessage = I18n.getTrans("i.notification_ranking_3", {team: TEAM_NAME, position: newPosition});
+      if(samePosition){
+        notificationMessage = I18n.getTrans("i.notification_ranking_3_same", {team: TEAM_NAME});
+      } else if(positionDown){
+        let teamOther;
+        if(pRanking[0].id !== ranking[0].id){
+          teamOther = ranking[0].name;
+        } else {
+          teamOther = ranking[1].name;
+        }
+        notificationMessage = I18n.getTrans("i.notification_ranking_3_down", {teamOther: teamOther, team: TEAM_NAME});
+      } else {
+        notificationMessage = I18n.getTrans("i.notification_ranking_3_up", {team: TEAM_NAME});
+      }
       break;
     default:
-      if(betterPosition){
-        notificationMessage = I18n.getTrans("i.notification_ranking_up", {team: TEAM_NAME, position: newPosition});
-      } else if(differentPosition){
-        notificationMessage = I18n.getTrans("i.notification_ranking_down", {team: TEAM_NAME, position: newPosition});
-      } else {
-        //prevPosition === newPosition
-        //A change in the ranking occurs, but that change did not modify team position.
-
-        //Check for changes in the podium
-
-
-
-        notificationMessage = I18n.getTrans("i.notification_ranking_generic", {team: TEAM_NAME, position: newPosition});
-      }
       break;
   }
 
-  let isSecondaryNotification = ((differentPosition===false)||(betterPosition===false)||(teamNotification !== TEAM_NAME));
+  if(typeof notificationMessage === "undefined"){
+    if(positionUp){
+      notificationMessage = I18n.getTrans("i.notification_ranking_up", {team: TEAM_NAME, position: newPosition});
+    } else if(positionDown){
+      notificationMessage = I18n.getTrans("i.notification_ranking_down", {team: TEAM_NAME, position: newPosition});
+    } else {
+      //Team is not in the podium.
+      //A change in the ranking occurs, but that change did not modify team position.
+
+      //Check for changes in the podium
+      if(pRanking instanceof Array){
+        if(pRanking[0].id !== ranking[0].id){
+          //New team in the first position
+          teamNotification = ranking[0].id;
+          notificationMessage = I18n.getTrans("i.notification_ranking_1_other", {teamOther: ranking[0].name});
+        } else if(ranking.length > 1){
+          if(pRanking[1].id !== ranking[1].id){
+            //New team in the 2nd position
+            teamNotification = ranking[1].id;
+            notificationMessage = I18n.getTrans("i.notification_ranking_2_other", {teamOther: ranking[1].name});
+          } else if(ranking.length > 2){
+            if(pRanking[2].id !== ranking[2].id){
+              //New team in the 3nd position
+              teamNotification = ranking[2].id;
+              notificationMessage = I18n.getTrans("i.notification_ranking_3_other", {teamOther: ranking[2].name});
+            }
+          }
+        }
+      }
+
+      if(typeof notificationMessage === "undefined"){
+        notificationMessage = I18n.getTrans("i.notification_ranking_generic", {team: TEAM_NAME, position: newPosition});
+      }
+    }
+  }
+
+  let isSecondaryNotification = ((samePosition===true)||(positionDown===true)||(teamNotification !== TEAM_ID));
 
   if(isSecondaryNotification){
     //Prevent notification overflood
@@ -369,6 +424,6 @@ function displayOnPuzzleSuccessNotification(puzzle){
 };
 
 function displayRankingNotification(msg){
-  let notificationOptions = {type: "ranking"};
+  let notificationOptions = {type: "ranking", autoHide: false}; //TODO REMOVE
   ESCAPP.displayCustomNotification(msg, notificationOptions);
 };

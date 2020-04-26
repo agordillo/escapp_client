@@ -431,6 +431,7 @@ export default function ESCAPP(options){
         that.updateRemoteErState(res.erState);
         let startSuccess = (res.code === "OK");
         if(startSuccess){
+          that.updateSettingsFromInitialErState(res.erState);
           settings.user.participation = res.participation;
           LocalStorage.saveSetting("user", settings.user);
         }

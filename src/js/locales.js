@@ -37,13 +37,26 @@ export let ESCAPP_LOCALES = {
     "i.notification_puzzle_success_end1": "¡Good job #{team}!",
     "i.notification_puzzle_success_end2": "¡Well done #{team}!",
     "i.notification_puzzle_success_end3": "¡Keep up the good work #{team}!",
-    "i.notification_ranking_1": "Congratulations #{team}! You are first in the leaderboard",
-    "i.notification_ranking_2": "Awesome #{team}! You are second in the leaderboard",
-    "i.notification_ranking_3": "Very good #{team}! You are third in the leaderboard",
+    
+    "i.notification_ranking_1_up": "Congratulations #{team}! You are first in the leaderboard",
+    "i.notification_ranking_2_up": "Awesome #{team}! You are second in the leaderboard",
+    "i.notification_ranking_3_up": "Very good #{team}! You are third in the leaderboard",
+
+    "i.notification_ranking_1_same": "Very good #{team}, you continue leading the leaderboard!",
+    "i.notification_ranking_2_same": "Great #{team}, you continue second in the leaderboard!",
+    "i.notification_ranking_3_same": "Good #{team}, you continue third in the leaderboard!",
+
+    "i.notification_ranking_2_down": "#{teamOther} just overtook you in the leaderboard! Now you are second in the leaderboard",
+    "i.notification_ranking_3_down": "#{teamOther} just overtook you in the leaderboard! Now you are third in the leaderboard",
+
     "i.notification_ranking_up": "#{team} has advanced to position number #{position} in the leaderboard!",
     "i.notification_ranking_down": "#{team} is now at position number #{position} in the leaderboard",
     "i.notification_ranking_generic": "#{team} is at position number #{position} in the leaderboard",
     
+    "i.notification_ranking_1_other": "#{team} is now at the first position of the leaderboard!",
+    "i.notification_ranking_2_other": "#{team} is now at the second position of the leaderboard!",
+    "i.notification_ranking_3_other": "#{team} is now at the third position of the leaderboard!",
+
     "i.notification_time_hours_and_minutes": "#{hours} hours and #{minutes} minutes to run out of time",
     "i.notification_time_one_hour_and_minutes": "One hour and #{minutes} minutes to run out of time",
     "i.notification_time_hours": "#{hours} hours to run out of time",
@@ -93,12 +106,25 @@ export let ESCAPP_LOCALES = {
     "i.notification_puzzle_success_end1": "¡Buen trabajo #{team}!",
     "i.notification_puzzle_success_end2": "¡Bien hecho #{team}!",
     "i.notification_puzzle_success_end3": "¡Seguir así #{team}!",
-    "i.notification_ranking_1": "¡Enhorabuena #{team}! Vais primeros en la clasificación!",
-    "i.notification_ranking_2": "¡Genial #{team}! Vais segundos en la clasificación",
-    "i.notification_ranking_3": "¡Muy bien #{team}! Vais terceros en la clasificación",
+
+    "i.notification_ranking_1_up": "¡Enhorabuena #{team}! Vais primeros en la clasificación!",
+    "i.notification_ranking_2_up": "¡Genial #{team}! Vais segundos en la clasificación",
+    "i.notification_ranking_3_up": "¡Muy bien #{team}! Vais terceros en la clasificación",
+
+    "i.notification_ranking_1_same": "Muy bien #{team}, ¡seguís encabezando la clasificación!",
+    "i.notification_ranking_2_same": "Estupendo #{team}, ¡seguís segundos en la clasificación!",
+    "i.notification_ranking_3_same": "Bien #{team}, ¡seguís terceros en la clasificación!",
+
+    "i.notification_ranking_2_down": "¡#{teamOther} os acaba de adelantar en la clasificación! Ahora váis segundos",
+    "i.notification_ranking_3_down": "¡#{teamOther} os acaba de adelantar en la clasificación! Ahora váis terceros",
+
     "i.notification_ranking_up": "¡#{team} ha avanzado a la #{position}º posición de la clasificación!",
     "i.notification_ranking_down": "#{team} ahora ocupa la #{position}º posición de la clasificación",
     "i.notification_ranking_generic": "#{team} está en la #{position}º posición de la clasificación",
+
+    "i.notification_ranking_1_other": "#{teamOther} se ha colocado en la primera posición de la clasificación",
+    "i.notification_ranking_2_other": "#{teamOther} se ha colocado en la segunda posición de la clasificación",
+    "i.notification_ranking_3_other": "#{teamOther} se ha colocado en la tercera posición de la clasificación",
 
     "i.notification_time_hours_and_minutes": "Faltan #{hours} horas y #{minutes} minutos para que se agote el tiempo",
     "i.notification_time_one_hour_and_minutes": "Falta 1 hora y #{minutes} minutos para que se agote el tiempo",
