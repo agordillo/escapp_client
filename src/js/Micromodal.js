@@ -188,15 +188,19 @@ export default (function() {
           //Escapp key
           if((typeof this.config.inputs === "undefined")&&((typeof this.config.buttons === "undefined")||(this.config.buttons.length===1))){
             this.closeModal(event);
+            event.preventDefault();
           }
         }
         if (event.keyCode === 13){
           //Enter key
           if((this.validateInputs())&&((typeof this.config.buttons === "undefined")||(this.config.buttons.length===1))){
             this.closeModal(event);
+            event.preventDefault();
           }
         }
-        if (event.keyCode === 9) this.maintainFocus(event);
+        if (event.keyCode === 9) {
+          this.maintainFocus(event);
+        }
       }
 
       onInputKeyup(event) {

@@ -42,7 +42,7 @@ export let ESCAPP_LOCALES = {
     "i.notification_ranking_3": "Very good #{team}! You are third in the leaderboard",
     "i.notification_ranking_up": "#{team} has advanced to position number #{position} in the leaderboard!",
     "i.notification_ranking_down": "#{team} is now at position number #{position} in the leaderboard",
-    "i.notification_ranking_same": "#{team} continues at position number #{position} in the leaderboard",
+    "i.notification_ranking_generic": "#{team} is at position number #{position} in the leaderboard",
     
     "i.notification_time_hours_and_minutes": "#{hours} hours and #{minutes} minutes to run out of time",
     "i.notification_time_one_hour_and_minutes": "One hour and #{minutes} minutes to run out of time",
@@ -98,7 +98,7 @@ export let ESCAPP_LOCALES = {
     "i.notification_ranking_3": "¡Muy bien #{team}! Vais terceros en la clasificación",
     "i.notification_ranking_up": "¡#{team} ha avanzado a la #{position}º posición de la clasificación!",
     "i.notification_ranking_down": "#{team} ahora ocupa la #{position}º posición de la clasificación",
-    "i.notification_ranking_same": "#{team} continua en la #{position}º posición de la clasificación",
+    "i.notification_ranking_generic": "#{team} está en la #{position}º posición de la clasificación",
 
     "i.notification_time_hours_and_minutes": "Faltan #{hours} horas y #{minutes} minutos para que se agote el tiempo",
     "i.notification_time_one_hour_and_minutes": "Falta 1 hora y #{minutes} minutos para que se agote el tiempo",

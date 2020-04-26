@@ -39,8 +39,10 @@ let loadEvents = function(){
 			}
 		});
 	});
+
+	let puzzle_id = 0;
 	$("#spuzzle").click(function(){
-		let puzzle_id = 1;
+		puzzle_id = puzzle_id + 1;
 		let solution = "1234";
 		let options = {};
 		escapp.submitPuzzle(puzzle_id,solution,options,function(success,res){
@@ -51,6 +53,7 @@ let loadEvents = function(){
 			console.log(res);
 		});
 	});
+	
 	$("#cedialog").click(function(){
 		escapp.displayCustomEscappDialog("Dialog title","Content of the escapp dialog",{},function(){
 			//On close dialog callback
