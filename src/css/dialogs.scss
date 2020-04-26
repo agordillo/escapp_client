@@ -89,6 +89,14 @@
   user-select: none;
 }
 
+.escapp-modal__btn:focus {
+  outline: none; 
+}
+
+.escapp-modal__btn::-moz-focus-inner {
+  border: 0;
+}
+
 .escapp-modal__btn-primary {
   background-color: #00449e;
   color: #fff;

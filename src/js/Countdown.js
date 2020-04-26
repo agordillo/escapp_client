@@ -17,7 +17,7 @@ let TIMER_DELAY_MIN = 1;
 let CURRENT_TIMER_DELAY = undefined;
 let TIMER_DELAY_THRESHOLD = 4*60;
 let ER_DURATION;
-let NOTIFICATION_TIMES = [0,1,2,5,10,15,30,45,60,90];
+let NOTIFICATION_TIMES = [0,1,2,5,10,15,30,45,60,75,90,105];
 
 export function init(options = {}){
   if(initialized === true){
@@ -51,7 +51,7 @@ export function startTimer(currentRemainingTime, duration){
   ER_DURATION = duration;
 
   // For development
-  // CURRENT_TIME = 0*60*60 + 5*60 + 5;
+  // CURRENT_TIME = 0*60*60 + 45*60 + 6;
 
   //Adjust timer
   let timeInHours = CURRENT_TIME/3600;
@@ -177,8 +177,12 @@ function showNotification(){
           text = I18n.getTrans("i.notification_time_hours",{hours: hours});
         } 
       } else {
-        //Hour and minutes
-        text = I18n.getTrans("i.notification_time_hours_and_minutes",{hours: hours, minutes: minutes});
+        //Hours and minutes
+        if(hours === 1){
+          text = I18n.getTrans("i.notification_time_one_hour_and_minutes",{hours: hours, minutes: minutes});
+        } else {
+          text = I18n.getTrans("i.notification_time_hours_and_minutes",{hours: hours, minutes: minutes});
+        }
       }
     } else {
       if(minutes > 0){

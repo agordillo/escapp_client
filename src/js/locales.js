@@ -44,7 +44,8 @@ export let ESCAPP_LOCALES = {
     "i.notification_ranking_down": "#{team} is now at position number #{position} in the leaderboard",
     "i.notification_ranking_same": "#{team} continues at position number #{position} in the leaderboard",
     
-    "i.notification_time_hours_and_minutes": "#{hours}:#{minutes} to run out of time",
+    "i.notification_time_hours_and_minutes": "#{hours} hours and #{minutes} minutes to run out of time",
+    "i.notification_time_one_hour_and_minutes": "One hour and #{minutes} minutes to run out of time",
     "i.notification_time_hours": "#{hours} hours to run out of time",
     "i.notification_time_one_hour": "1 hour to run out of time",
     "i.notification_time_minutes": "#{minutes} minutes to run out of time",
@@ -99,7 +100,8 @@ export let ESCAPP_LOCALES = {
     "i.notification_ranking_down": "#{team} ahora ocupa la #{position}º posición de la clasificación",
     "i.notification_ranking_same": "#{team} continua en la #{position}º posición de la clasificación",
 
-    "i.notification_time_hours_and_minutes": "Falta #{hours}:#{minutes} para que se agote el tiempo",
+    "i.notification_time_hours_and_minutes": "Faltan #{hours} horas y #{minutes} minutos para que se agote el tiempo",
+    "i.notification_time_one_hour_and_minutes": "Falta 1 hora y #{minutes} minutos para que se agote el tiempo",
     "i.notification_time_hours": "Faltan #{hours} horas para que se agote el tiempo",
     "i.notification_time_one_hour": "Falta 1 hora para que se agote el tiempo",
     "i.notification_time_minutes": "Faltan #{minutes} minutos para que se agote el tiempo",
