@@ -337,6 +337,10 @@ export default function ESCAPP(options){
       if(typeof callback === "function"){
         callback(settings.user.authenticated);
       }
+    }).catch(function(error){
+       that.displayConnectionErrorDialog(false,function(){
+          that.auth(user,callback);
+       });
     });
   };
 
@@ -404,7 +408,13 @@ export default function ESCAPP(options){
           callback(submitSuccess,res);
         }
       }
-    );
+    ).catch(function(error){
+       that.displayConnectionErrorDialog(true,function(dialogResponse){
+        if(dialogResponse === "retry"){
+          that.submitPuzzle(puzzleId,solution,options,callback);
+        }
+       });
+    });
   };
 
   this.start = function(callback){
@@ -439,7 +449,17 @@ export default function ESCAPP(options){
           callback(startSuccess,res);
         }
       }
-    ); 
+    ).catch(function(error){
+       that.displayConnectionErrorDialog(true,function(dialogResponse){
+        if(dialogResponse === "nok"){
+          if(typeof callback === "function"){
+            callback(false);
+          }
+        } else if(dialogResponse === "retry"){
+          that.start(callback);
+        }
+       });
+    }); 
   };
 
   this.sendData = function(data,callback){
@@ -940,6 +960,30 @@ export default function ESCAPP(options){
         callback(response);
       }.bind(this);
     }
+    this.displayDialog(dialogOptions);
+  };
+
+  this.displayConnectionErrorDialog = function(cancelable,callback){
+    let dialogOptions = {};
+    dialogOptions.title = I18n.getTrans("i.connecton_error_title");
+    dialogOptions.text = I18n.getTrans("i.connecton_error_text"); 
+    dialogOptions.buttons = [
+      {
+        "response":"retry",
+        "label":I18n.getTrans("i.button_retry"),
+      }
+    ];
+    if(cancelable===true){
+      dialogOptions.buttons.push({
+        "response":"nok",
+        "label": I18n.getTrans("i.button_nok"),
+      });
+    }
+    dialogOptions.closeCallback = function(dialogResponse){
+      if(typeof callback === "function"){
+        callback(dialogResponse.choice);
+      }
+    };
     this.displayDialog(dialogOptions);
   };
 

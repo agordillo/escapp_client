@@ -2,6 +2,7 @@ export let ESCAPP_LOCALES = {
   en:{
     "i.button_ok":"Ok",
     "i.button_nok":"Cancel",
+    "i.button_retry":"Retry",
 
     "i.generic_error_title":"Error",
 
@@ -11,6 +12,10 @@ export let ESCAPP_LOCALES = {
     "i.auth_text_wrong_credentials":"The credentials provided are not correct. You need to enter your Escapp user credentials (email and password). For this authentication to be successful, you must have previously registered with your user to the escape room on the Escapp platform.",
     "i.auth_email_label":"Email",
     "i.auth_password_label":"Password",
+
+    "i.connecton_error_title": "Connection Error",
+    "i.connecton_error_text": "Unable to connect to the Escapp platform.",
+    
 
     "i.completion_title":"¡Escape Room Completed!",
     "i.completion_text":"¡Congratulations! You have completed the escape room. On the escapp platform you can check the ranking to see in which position you have ended.",
@@ -71,6 +76,7 @@ export let ESCAPP_LOCALES = {
   es:{
     "i.button_ok":"Ok",
     "i.button_nok":"Cancelar",
+    "i.button_retry":"Reintentar",
 
     "i.generic_error_title":"Error",
 
@@ -80,6 +86,9 @@ export let ESCAPP_LOCALES = {
     "i.auth_text_wrong_credentials":"Las credenciales aportadas no son correctas. Debes introducir las credenciales (correo y contraseña) de tu usuario en la plataforma Escapp. Para que esta autenticación tenga éxito, previamente debes de haberte inscrito con tu usuario a la escape room en la plataforma Escapp.",
     "i.auth_email_label":"Correo electrónico",
     "i.auth_password_label":"Contraseña",
+
+    "i.connecton_error_title": "Error de conexión",
+    "i.connecton_error_text": "No se ha podido conectar con la plataforma Escapp.",
 
     "i.completion_title":"¡Escape Room Completada!",
     "i.completion_text":"¡Enhorabuena! Has completado la escape room.<br/>En la <a href='#{escappURL}' target='_blank'>plataforma escapp</a> puedes consultar el ranking para ver en que posición has finalizado.",

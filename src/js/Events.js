@@ -8,7 +8,7 @@ let SERVER_URL;
 let ESCAPE_ROOM_ID;
 let TEAM_ID;
 let TEAM_NAME;
-let TIME_SECONDARY_NOTIFICATIONS = 0.1; //In minutes
+let TIME_SECONDARY_NOTIFICATIONS = 5; //In minutes
 let DELAY_FOR_RECONNECTIONS = 3000;
 let io = IO;
 let socket;
@@ -17,7 +17,6 @@ let state = {
   connectedTeamMembers: [],
   reconnectionTeamMembers: {},
   ranking: undefined,
-  firstRanking: true,
   allowSecondaryRankingNotifications: true,
 }
 
@@ -249,111 +248,117 @@ function onNewErState(erState){
 
 function updateRanking(ranking, eventData){
   let pRanking = undefined;
-  if(typeof state.ranking !== "undefined"){
+  if(state.ranking instanceof Array){
     pRanking = Object.assign([],state.ranking);
   }
   //Update previous ranking
   state.ranking = ranking;
 
-  if(isRankingEmpty(ranking)){
+  if((!(pRanking instanceof Array))||(!(ranking instanceof Array))||(isRankingEmpty(ranking))){
+    return;
+  }
+
+  if((typeof TEAM_ID === "undefined")||(typeof TEAM_NAME !== "string")){
     return;
   }
 
   let prevPosition = getTeamPositionFromRanking(pRanking, TEAM_ID);
   let newPosition = getTeamPositionFromRanking(ranking, TEAM_ID);
-
-  if((typeof prevPosition !== "number")||(typeof newPosition !== "number")||(typeof TEAM_NAME !== "string")){
+  
+  if((typeof prevPosition !== "number")||(typeof newPosition !== "number")){
     return;
   }
 
-  let teamNotification = TEAM_ID;
-  let differentPosition = (newPosition !== prevPosition);
-  let samePosition = (differentPosition === false);
   let positionUp = (newPosition < prevPosition);
+  let samePosition = (newPosition === prevPosition);
   let positionDown = (newPosition > prevPosition);
 
-  if(state.firstRanking === true){
-    differentPosition = false;
-    samePosition = false;
-    positionUp = false;
-    positionDown = false;
-    state.firstRanking = false;
-  }
-  
-  let notificationMessage = undefined;
-  switch(newPosition){
-    case 1:
-      if(samePosition) {
-        notificationMessage = I18n.getTrans("i.notification_ranking_1_same", {team: TEAM_NAME});
-      } else {
-        notificationMessage = I18n.getTrans("i.notification_ranking_1_up", {team: TEAM_NAME});
-      }
-      break;
-    case 2:
-      if(samePosition){
-        notificationMessage = I18n.getTrans("i.notification_ranking_2_same", {team: TEAM_NAME});
-      } else if(positionDown){
-        notificationMessage = I18n.getTrans("i.notification_ranking_2_down", {teamOther: ranking[0].name, team: TEAM_NAME});
-      } else {
-        notificationMessage = I18n.getTrans("i.notification_ranking_2_up", {team: TEAM_NAME});
-      }
-      break;
-    case 3:
-      if(samePosition){
-        notificationMessage = I18n.getTrans("i.notification_ranking_3_same", {team: TEAM_NAME});
-      } else if(positionDown){
-        let teamOther;
-        if(pRanking[0].id !== ranking[0].id){
-          teamOther = ranking[0].name;
-        } else {
-          teamOther = ranking[1].name;
-        }
-        notificationMessage = I18n.getTrans("i.notification_ranking_3_down", {teamOther: teamOther, team: TEAM_NAME});
-      } else {
-        notificationMessage = I18n.getTrans("i.notification_ranking_3_up", {team: TEAM_NAME});
-      }
-      break;
-    default:
-      break;
-  }
+  let team = ESCAPP.getTeamFromRanking(TEAM_ID,ranking);
+  let puzzlesSolved = ((typeof team === "object")&&(typeof team.count === "number")) ? team.count : 0;
 
-  if(typeof notificationMessage === "undefined"){
-    if(positionUp){
+  let notificationMessage = undefined;
+  let teamNotification = TEAM_ID;
+
+  let podiumMessage = ((puzzlesSolved > 0)&&(newPosition <= 3));
+  if(podiumMessage){
+    //Podium messages
+    switch(newPosition){
+      case 1:
+        if(positionUp){
+          notificationMessage = I18n.getTrans("i.notification_ranking_1_up", {team: TEAM_NAME});
+        } else if(samePosition){
+          notificationMessage = I18n.getTrans("i.notification_ranking_1_same", {team: TEAM_NAME});
+        }
+        break;
+      case 2:
+        if(positionUp){
+          notificationMessage = I18n.getTrans("i.notification_ranking_2_up", {team: TEAM_NAME});
+        } else if(samePosition){
+          notificationMessage = I18n.getTrans("i.notification_ranking_2_same", {team: TEAM_NAME});
+        } else if(positionDown){
+          notificationMessage = I18n.getTrans("i.notification_ranking_2_down", {teamOther: ranking[0].name, team: TEAM_NAME});
+        }
+        break;
+      case 3:
+        if(positionUp){
+          notificationMessage = I18n.getTrans("i.notification_ranking_3_up", {team: TEAM_NAME});
+        } else if(samePosition){
+          notificationMessage = I18n.getTrans("i.notification_ranking_3_same", {team: TEAM_NAME});
+        } else if(positionDown){
+          let teamOther;
+          if((pRanking.length > 0)&&(pRanking[0].id !== ranking[0].id)){
+            teamOther = ranking[0].name;
+          } else {
+            teamOther = ranking[1].name;
+          }
+          notificationMessage = I18n.getTrans("i.notification_ranking_3_down", {teamOther: teamOther, team: TEAM_NAME});
+        }
+        break;
+      default:
+        break;
+    }
+  } else {
+    if((positionUp)&&(puzzlesSolved > 0)){
       notificationMessage = I18n.getTrans("i.notification_ranking_up", {team: TEAM_NAME, position: newPosition});
-    } else if(positionDown){
+    } else if((positionDown)&&(puzzlesSolved > 0)){
       notificationMessage = I18n.getTrans("i.notification_ranking_down", {team: TEAM_NAME, position: newPosition});
     } else {
-      //Team is not in the podium.
-      //A change in the ranking occurs, but that change did not modify team position.
+      //Team has puzzlesSolved===0 or (team is not in the podium and team has the same position)
 
-      //Check for changes in the podium
+      //Check for changes in the podium (only other teams)
       if(pRanking instanceof Array){
-        if(pRanking[0].id !== ranking[0].id){
-          //New team in the first position
-          teamNotification = ranking[0].id;
-          notificationMessage = I18n.getTrans("i.notification_ranking_1_other", {teamOther: ranking[0].name});
-        } else if(ranking.length > 1){
-          if(pRanking[1].id !== ranking[1].id){
-            //New team in the 2nd position
-            teamNotification = ranking[1].id;
-            notificationMessage = I18n.getTrans("i.notification_ranking_2_other", {teamOther: ranking[1].name});
-          } else if(ranking.length > 2){
-            if(pRanking[2].id !== ranking[2].id){
-              //New team in the 3nd position
-              teamNotification = ranking[2].id;
-              notificationMessage = I18n.getTrans("i.notification_ranking_3_other", {teamOther: ranking[2].name});
+        let pRL = pRanking.length;
+        let rL = ranking.length;
+        if((pRL > 0)&&(rL > 0)){
+          if((pRanking[0].id !== ranking[0].id)&&(ranking[0].id !== TEAM_ID)){
+            //New team in the first position
+            teamNotification = ranking[0].id;
+            notificationMessage = I18n.getTrans("i.notification_ranking_1_other", {teamOther: ranking[0].name});
+          } else if((pRL > 1)&&(rL > 1)){
+            if((pRanking[1].id !== ranking[1].id)&&(ranking[1].id !== TEAM_ID)){
+              //New team in the 2nd position
+              teamNotification = ranking[1].id;
+              notificationMessage = I18n.getTrans("i.notification_ranking_2_other", {teamOther: ranking[1].name});
+            } else if((pRL > 2)&&(rL > 2)){
+              if((pRanking[2].id !== ranking[2].id)&&(ranking[2].id !== TEAM_ID)){
+                //New team in the 3nd position
+                teamNotification = ranking[2].id;
+                notificationMessage = I18n.getTrans("i.notification_ranking_3_other", {teamOther: ranking[2].name});
+              }
             }
           }
         }
       }
 
+      //Generic ranking message. Notifies current team position
       if(typeof notificationMessage === "undefined"){
         notificationMessage = I18n.getTrans("i.notification_ranking_generic", {team: TEAM_NAME, position: newPosition});
       }
     }
   }
 
-  let isSecondaryNotification = ((samePosition===true)||(positionDown===true)||(teamNotification !== TEAM_ID));
+  let outOfPodiumMessage = ((positionDown===true)&&(puzzlesSolved > 0)&&(prevPosition <= 3)&&(newPosition > 3));
+  let isSecondaryNotification = ((samePosition===true)||(teamNotification !== TEAM_ID)||((positionDown===true)&&(podiumMessage===false)&&(outOfPodiumMessage===false)));
 
   if(isSecondaryNotification){
     //Prevent notification overflood
