@@ -54,9 +54,10 @@ export let ESCAPP_LOCALES = {
     "i.notification_ranking_2_down": "#{teamOther} just overtook you in the leaderboard! Now you are second in the leaderboard",
     "i.notification_ranking_3_down": "#{teamOther} just overtook you in the leaderboard! Now you are third in the leaderboard",
 
-    "i.notification_ranking_up": "#{team} has advanced to position number #{position} in the leaderboard!",
-    "i.notification_ranking_down": "#{team} is now at position number #{position} in the leaderboard",
-    "i.notification_ranking_generic": "#{team} is at position number #{position} in the leaderboard",
+    "i.notification_ranking_up": "#{team} has advanced to position #{position} in the leaderboard!",
+    "i.notification_ranking_down": "#{teamOther} just overtook you! #{team} is now at position #{position} in the leaderboard",
+    "i.notification_ranking_down_generic": "#{team} is now at position #{position} in the leaderboard",
+    "i.notification_ranking_generic": "#{team} is at position #{position} in the leaderboard",
     
     "i.notification_ranking_1_other": "#{team} is now at the first position of the leaderboard!",
     "i.notification_ranking_2_other": "#{team} is now at the second position of the leaderboard!",
@@ -128,7 +129,8 @@ export let ESCAPP_LOCALES = {
     "i.notification_ranking_3_down": "¡#{teamOther} os acaba de adelantar en la clasificación! Ahora váis terceros",
 
     "i.notification_ranking_up": "¡#{team} ha avanzado a la #{position}º posición de la clasificación!",
-    "i.notification_ranking_down": "#{team} ahora ocupa la #{position}º posición de la clasificación",
+    "i.notification_ranking_down": "¡#{teamOther} os acaba de adelantar! #{team} ahora ocupa la #{position}º posición de la clasificación",
+    "i.notification_ranking_down_generic": "#{team} ahora ocupa la #{position}º posición de la clasificación",
     "i.notification_ranking_generic": "#{team} está en la #{position}º posición de la clasificación",
 
     "i.notification_ranking_1_other": "#{teamOther} se ha colocado en la primera posición de la clasificación",

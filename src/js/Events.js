@@ -8,7 +8,7 @@ let SERVER_URL;
 let ESCAPE_ROOM_ID;
 let TEAM_ID;
 let TEAM_NAME;
-let TIME_SECONDARY_NOTIFICATIONS = 5; //In minutes
+let TIME_SECONDARY_NOTIFICATIONS = 4; //In minutes
 let DELAY_FOR_RECONNECTIONS = 3000;
 let io = IO;
 let socket;
@@ -17,6 +17,7 @@ let state = {
   connectedTeamMembers: [],
   reconnectionTeamMembers: {},
   ranking: undefined,
+  firstRankingNotificationShown: false,
   allowSecondaryRankingNotifications: true,
 }
 
@@ -275,13 +276,19 @@ function updateRanking(ranking, eventData){
 
   let team = ESCAPP.getTeamFromRanking(TEAM_ID,ranking);
   let puzzlesSolved = ((typeof team === "object")&&(typeof team.count === "number")) ? team.count : 0;
-
+  
   let notificationMessage = undefined;
   let teamNotification = TEAM_ID;
 
-  let podiumMessage = ((puzzlesSolved > 0)&&(newPosition <= 3));
-  if(podiumMessage){
-    //Podium messages
+  if((state.firstRankingNotificationShown===false)&&(puzzlesSolved > 0)&&((samePosition)||(positionDown))){
+    positionUp = (newPosition <= 3);
+    samePosition = false;
+    positionDown = false;
+  }
+
+  //Podium messages
+  let podiumMessage = false;
+  if(((puzzlesSolved > 0)&&(newPosition <= 3))){
     switch(newPosition){
       case 1:
         if(positionUp){
@@ -317,37 +324,48 @@ function updateRanking(ranking, eventData){
       default:
         break;
     }
-  } else {
+
+    podiumMessage = (typeof notificationMessage === "string");
+  } 
+
+  if(typeof notificationMessage === "undefined"){
     if((positionUp)&&(puzzlesSolved > 0)){
       notificationMessage = I18n.getTrans("i.notification_ranking_up", {team: TEAM_NAME, position: newPosition});
     } else if((positionDown)&&(puzzlesSolved > 0)){
-      notificationMessage = I18n.getTrans("i.notification_ranking_down", {team: TEAM_NAME, position: newPosition});
+      let teamOther = getTeamOtherWhenRankingDown(pRanking,ranking,prevPosition,newPosition);
+      if(typeof teamOther === "string"){
+        notificationMessage = I18n.getTrans("i.notification_ranking_down", {teamOther: teamOther, team: TEAM_NAME, position: newPosition});
+      } else {
+        notificationMessage = I18n.getTrans("i.notification_ranking_down_generic", {team: TEAM_NAME, position: newPosition});
+      }
     } else {
       //Team has puzzlesSolved===0 or (team is not in the podium and team has the same position)
 
-      //Check for changes in the podium (only other teams)
-      if(pRanking instanceof Array){
-        let pRL = pRanking.length;
-        let rL = ranking.length;
-        if((pRL > 0)&&(rL > 0)){
-          if((pRanking[0].id !== ranking[0].id)&&(ranking[0].id !== TEAM_ID)){
-            //New team in the first position
-            teamNotification = ranking[0].id;
-            notificationMessage = I18n.getTrans("i.notification_ranking_1_other", {teamOther: ranking[0].name});
-          } else if((pRL > 1)&&(rL > 1)){
-            if((pRanking[1].id !== ranking[1].id)&&(ranking[1].id !== TEAM_ID)){
-              //New team in the 2nd position
-              teamNotification = ranking[1].id;
-              notificationMessage = I18n.getTrans("i.notification_ranking_2_other", {teamOther: ranking[1].name});
-            } else if((pRL > 2)&&(rL > 2)){
-              if((pRanking[2].id !== ranking[2].id)&&(ranking[2].id !== TEAM_ID)){
-                //New team in the 3nd position
-                teamNotification = ranking[2].id;
-                notificationMessage = I18n.getTrans("i.notification_ranking_3_other", {teamOther: ranking[2].name});
+      if((state.firstRankingNotificationShown === true)||(puzzlesSolved === 0)){
+        //Check for changes in the podium (only other teams)
+        if(pRanking instanceof Array){
+          let pRL = pRanking.length;
+          let rL = ranking.length;
+          if((pRL > 0)&&(rL > 0)){
+            if((pRanking[0].id !== ranking[0].id)&&(ranking[0].id !== TEAM_ID)){
+              //New team in the first position
+              teamNotification = ranking[0].id;
+              notificationMessage = I18n.getTrans("i.notification_ranking_1_other", {teamOther: ranking[0].name});
+            } else if((pRL > 1)&&(rL > 1)){
+              if((pRanking[1].id !== ranking[1].id)&&(ranking[1].id !== TEAM_ID)){
+                //New team in the 2nd position
+                teamNotification = ranking[1].id;
+                notificationMessage = I18n.getTrans("i.notification_ranking_2_other", {teamOther: ranking[1].name});
+              } else if((pRL > 2)&&(rL > 2)){
+                if((pRanking[2].id !== ranking[2].id)&&(ranking[2].id !== TEAM_ID)){
+                  //New team in the 3nd position
+                  teamNotification = ranking[2].id;
+                  notificationMessage = I18n.getTrans("i.notification_ranking_3_other", {teamOther: ranking[2].name});
+                }
               }
             }
           }
-        }
+        } 
       }
 
       //Generic ranking message. Notifies current team position
@@ -372,6 +390,11 @@ function updateRanking(ranking, eventData){
     setTimeout(function(){
       state.allowSecondaryRankingNotifications = true;
     },TIME_SECONDARY_NOTIFICATIONS * 60000);
+
+    if((state.firstRankingNotificationShown === false)&&(teamNotification === TEAM_ID)){
+      state.firstRankingNotificationShown = true;
+    }
+
     displayRankingNotification(notificationMessage);
   }
 };
@@ -395,6 +418,34 @@ function getTeamPositionFromRanking(ranking, teamId){
       }
     }
   }
+  return undefined;
+};
+
+function getTeamOtherWhenRankingDown(prevRanking, ranking, prevPosition, newPosition){
+  if((prevPosition <= 0)||(newPosition <= prevPosition)||(prevPosition >= prevRanking.length)||(newPosition > ranking.length)){
+    return undefined;
+  }
+
+  let prevTeamsDown = [];
+  for(let i=prevPosition; i<prevRanking.length; i++){
+    prevTeamsDown.push(prevRanking[i].id);
+  }
+
+  if(prevTeamsDown.length === 0){
+    return undefined;
+  }
+
+  let newTeamsUpNames = [];
+  for(let j=(newPosition-1); j>=0; j--){
+    if(prevTeamsDown.indexOf(ranking[j].id)!==-1){
+      newTeamsUpNames.push(ranking[j].name);
+    }
+  }
+
+  if(newTeamsUpNames.length === 1){
+    return newTeamsUpNames[0];
+  }
+
   return undefined;
 };
 
@@ -429,6 +480,6 @@ function displayOnPuzzleSuccessNotification(puzzle){
 };
 
 function displayRankingNotification(msg){
-  let notificationOptions = {type: "ranking", autoHide: false}; //TODO REMOVE
+  let notificationOptions = {type: "ranking"};
   ESCAPP.displayCustomNotification(msg, notificationOptions);
 };
