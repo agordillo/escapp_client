@@ -30,10 +30,22 @@ export function init(options = {}){
 
   let domain = getEscappPlatformDomain(options.endpoint);
   if(typeof domain !== "undefined"){
-    SERVER_URL = 'wss://' + getEscappPlatformDomain(options.endpoint);
+    let protocol = getEscappPlatformSocketProtocol(options.endpoint);
+    SERVER_URL = protocol + domain;
     ESCAPE_ROOM_ID = getEscappPlatformERId(options.endpoint);
   }
 };
+
+function getEscappPlatformSocketProtocol(endpoint){
+  let protocol = "ws://";
+  try {
+    if (endpoint.match("https://")) {
+      protocol = "wss://";
+    }
+  } catch (e){}
+  return protocol;
+}
+
 
 function getEscappPlatformDomain(endpoint){
   let domain;

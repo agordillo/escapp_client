@@ -115,7 +115,7 @@ export let ESCAPP_LOCALES = {
     "i.notification_puzzle_success": "Tu equipo ha superado un nuevo reto.",
     "i.notification_puzzle_success_end1": "¡Buen trabajo #{team}!",
     "i.notification_puzzle_success_end2": "¡Bien hecho #{team}!",
-    "i.notification_puzzle_success_end3": "¡Seguir así #{team}!",
+    "i.notification_puzzle_success_end3": "¡Seguid así #{team}!",
 
     "i.notification_ranking_1_up": "¡Enhorabuena #{team}! Vais primeros en la clasificación!",
     "i.notification_ranking_2_up": "¡Genial #{team}! Vais segundos en la clasificación",
