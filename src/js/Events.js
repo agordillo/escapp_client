@@ -92,6 +92,7 @@ function loadSocketEvents(socket){
   socket.on('HINT_RESPONSE', onNewHint);
   socket.on('PUZZLE_RESPONSE', onPuzzleResponse);
   socket.on('TEAM_PROGRESS', onNewRanking);
+  socket.on('MESSAGE', onNewMessage);
 
   //Socket IO generic errors
   socket.on('connect_error', (err) => {
@@ -240,6 +241,13 @@ function onNewRanking(data){
   }
 };
 
+function onNewMessage(data){
+  if (data && data.msg && typeof data.msg === "string" && data.msg.length) {
+    let notificationOptions = {type: "info"};
+    notificationOptions.text = data.msg;
+    ESCAPP.displayCustomNotification(notificationOptions.text, notificationOptions);
+  }
+}
 
 //////////////////
 // Utils for managing escapp events
