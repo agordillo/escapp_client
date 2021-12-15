@@ -86,6 +86,12 @@ export default function ESCAPP(options){
   //////////////////
 
   this.init = function(){
+    //Check URL params
+    let URL_params = Utils.getParamsFromCurrentUrl();
+    if(typeof URL_params.endpoint !== "undefined"){
+      settings.endpoint = Utils.checkUrlProtocol(URL_params.endpoint);
+    }
+    
     //Init modules
     I18n.init(settings.I18n);
     LocalStorage.init(settings.localStorageKey);
@@ -101,8 +107,7 @@ export default function ESCAPP(options){
     if(typeof user === "object"){
       settings.user = user;
     } else {
-      //Check URL params
-      let URL_params = Utils.getParamsFromCurrentUrl();
+      //Check if there are user credentials in the URL params
       let user = this.getUserCredentials({email: URL_params.email, token: URL_params.token});    
       if(typeof user !== "undefined"){
         settings.user = user;

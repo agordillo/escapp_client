@@ -70,6 +70,49 @@ export function addParamToUrl(url,paramName,paramValue){
   return url;
 };
 
+export function checkUrlProtocol(url){
+  if(typeof url == "string"){
+    var protocolMatch = (url).match(/^https?:\/\//);
+    if((protocolMatch instanceof Array)&&(protocolMatch.length === 1)){
+      var urlProtocol = protocolMatch[0].replace(":\/\/","");
+      var appProtocol = getProtocol();
+      if(urlProtocol != appProtocol){
+        switch(appProtocol){
+          case "https":
+            //Try to load HTTP url over HTTPs
+            url = "https" + url.replace(urlProtocol,""); //replace first
+            break;
+          case "http":
+            //Try to load HTTPs url over HTTP
+            //Do nothing
+            break;
+          default:
+            //App is not loaded over HTTP or HTTPs
+            break;
+        }
+      }
+    }
+  }
+  return url;
+};
+
+var getProtocol = function(){
+  var protocol;
+  try {
+    protocol = document.location.protocol;
+  } catch(e){}
+
+  if(typeof protocol == "string"){
+    var protocolMatch = protocol.match(/[\w]+/);
+    if((protocolMatch instanceof Array)&&(typeof protocolMatch[0] == "string")){
+      protocol = protocolMatch[0];
+    } else {
+      protocol = "unknown";
+    }
+  }
+  return protocol;
+}
+
 export function validateEmail(email){
 	if(typeof email !== "string") return false;
 	var regex = /\S+@\S+\.\S+/;
