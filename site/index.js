@@ -40,14 +40,28 @@ let loadEvents = function(){
 		});
 	});
 
-	let puzzle_id = 0;
+	let puzzle_id = 1;
 	$("#spuzzle").click(function(){
-		puzzle_id = puzzle_id + 1;
 		let solution = "1234";
 		let options = {};
 		escapp.submitPuzzle(puzzle_id,solution,options,function(success,res){
 			//Puzzle submitted
-			console.log("Puzzle submitted");
+			console.log("Puzzle submitted (puzzle_id = " + puzzle_id + ")");
+			console.log("Success: " + success);
+			console.log("Full escapp response:");
+			console.log(res);
+			if(success === true){
+				puzzle_id = puzzle_id + 1;
+			}
+		});
+	});
+
+	$("#cpuzzle").click(function(){
+		let solution = "1234";
+		let options = {};
+		escapp.checkPuzzle(puzzle_id,solution,options,function(success,res){
+			//Puzzle checked
+			console.log("Puzzle checked (puzzle_id = " + puzzle_id + ")");
 			console.log("Success: " + success);
 			console.log("Full escapp response:");
 			console.log(res);

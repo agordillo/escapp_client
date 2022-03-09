@@ -91,6 +91,7 @@ function loadSocketEvents(socket){
   socket.on('LEAVE', onMemberLeave);
   socket.on('HINT_RESPONSE', onNewHint);
   socket.on('PUZZLE_RESPONSE', onPuzzleResponse);
+  //socket.on('PUZZLE_CHECKED', onPuzzleCheck);
   socket.on('TEAM_PROGRESS', onNewRanking);
   socket.on('MESSAGE', onNewMessage);
 
@@ -232,6 +233,13 @@ function onPuzzleResponse(res){
     } else {
       onNewErState(res.erState);
     }
+  }
+};
+
+function onPuzzleCheck(res){
+  if((res.code === "OK")&&(res.correctAnswer === true)&&(typeof res.puzzleOrder === "number")){
+    //Puzzle succesfully checked
+    //Do something...
   }
 };
 

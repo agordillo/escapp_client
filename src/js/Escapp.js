@@ -6,7 +6,7 @@
  * https://github.com/agordillo/escapp_client
  * Creative Commons Attribution-ShareAlike 4.0 International License.
  *
- * @version 0.0.1
+ * @version 0.0.2
  */
 import 'es6-promise';
 import "isomorphic-fetch";
@@ -361,7 +361,7 @@ export default function ESCAPP(options){
     }.bind(this));
   };
 
-  this.submitPuzzle = function(puzzleId,solution,options,callback){
+  this.submitPuzzle = function(puzzleId,solution,options={},callback){
     let userCredentials = this.getUserCredentials(settings.user);
     if(typeof userCredentials === "undefined"){
       if(typeof callback === "function"){
@@ -386,7 +386,7 @@ export default function ESCAPP(options){
     }
 
     let that = this;
-    let submitPuzzleURL = settings.endpoint + "/puzzles/" + puzzleId + "/submit";
+    let submitPuzzleURL = settings.endpoint + "/puzzles/" + puzzleId + ((options.readonly === true) ? "/check_solution" : "/submit");
     let body = userCredentials;
     body.solution = solution;
     
@@ -398,19 +398,24 @@ export default function ESCAPP(options){
         "Accept-Language": "es-ES"
       }
     }).then(res => res.json()).then(function(res){
-        let submitSuccess = (res.code === "OK");
-        if(submitSuccess){
-          //Puzzle solved
-          if(that.validateERState(settings.localErState)){
-            if(settings.localErState.puzzlesSolved.indexOf(puzzleId)===-1){
-              settings.localErState.puzzlesSolved.push(puzzleId);
-              LocalStorage.saveSetting("localErState",settings.localErState);
+        let success = false;
+        if(options.readonly != true){
+          success = (res.code === "OK");
+          if(success){
+            //Puzzle solved
+            if(that.validateERState(settings.localErState)){
+              if(settings.localErState.puzzlesSolved.indexOf(puzzleId)===-1){
+                settings.localErState.puzzlesSolved.push(puzzleId);
+                LocalStorage.saveSetting("localErState",settings.localErState);
+              }
             }
           }
+          that.updateRemoteErState(res.erState);
+        } else {
+          success = ((res.code === "OK")&&(res.correctAnswer === true));
         }
-        that.updateRemoteErState(res.erState);
         if(typeof callback === "function"){
-          callback(submitSuccess,res);
+          callback(success,res);
         }
       }
     ).catch(function(error){
@@ -420,6 +425,11 @@ export default function ESCAPP(options){
         }
        });
     });
+  };
+
+  this.checkPuzzle = function(puzzleId,solution,options={},callback){
+    options.readonly = true;
+    this.submitPuzzle(puzzleId,solution,options,callback);
   };
 
   this.start = function(callback){
