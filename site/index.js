@@ -5,6 +5,14 @@ $(document).ready(function(){
 	if(window['escapp_environment']==="production"){
 		CONFIG.imagesPath = "./images/";
 	}
+	CONFIG.onNewErStateCallback = function(er_state){
+		console.log("onNewErStateCallback");
+		console.log(er_state);
+	};
+	CONFIG.onErRestartCallback = function(er_state){
+		console.log("onErRestartCallback");
+		console.log(er_state);
+	};
 	console.log(CONFIG);
 	escapp = new ESCAPP(CONFIG);
 	loadEvents();

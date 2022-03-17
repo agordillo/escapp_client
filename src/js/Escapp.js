@@ -41,7 +41,7 @@ export default function ESCAPP(options){
   let defaults = {
     initCallback: undefined,
     onNewErStateCallback: undefined,
-    onResetCallback: undefined,
+    onErRestartCallback: undefined,
     endpoint: undefined,
     localStorageKey: "ESCAPP",
     encryptKey: undefined,
@@ -167,7 +167,8 @@ export default function ESCAPP(options){
   };
 
   this.validateUser = function(callback){
-    if((settings.user.authenticated !== true)||(settings.user.participation !== "PARTICIPANT")){
+    if((settings.user.authenticated !== true)||(["PARTICIPANT","NOT_STARTED"].indexOf(settings.user.participation) === -1)){
+      //User is not authenticated or is authenticated but not a participant of the escape room.
       this.displayUserAuthDialog(true,function(success){
         if((success)||(settings.forceValidation===false)){
           return this.validateUserAfterAuth(callback);
@@ -177,6 +178,7 @@ export default function ESCAPP(options){
         }
       }.bind(this));
     } else {
+      //User has auth credentials.
       this.retrieveState(function(success,erState){
         if((success)||(settings.forceValidation===false)){
           if(typeof callback === "function"){
@@ -352,8 +354,21 @@ export default function ESCAPP(options){
 
   this.retrieveState = function(callback){
     this.auth(settings.user,function(success){
-      if((success)&&(settings.user.authenticated)&&(settings.user.participation==="PARTICIPANT")){
-        return this.validateUserAfterAuth(callback);
+      if((success)&&(settings.user.authenticated)&&(["PARTICIPANT","NOT_STARTED"].indexOf(settings.user.participation) !== -1)){
+        //User is authenticated and a participant.
+        if (settings.user.participation === "NOT_STARTED"){
+          //User is authenticated and a participant, but the escape room needs to be started.
+          //Ask the participant if he/she wants to start the escape room.
+          this.startEscapeRoom(function(started){
+            if(started === true){
+              return this.validateUserAfterAuth(callback);
+            } else {
+              return this.validateUser(callback);
+            }
+          }.bind(this));
+        } else {
+          return this.validateUserAfterAuth(callback);
+        }
       } else {
         if(typeof callback === "function"){
           callback(false,undefined);
@@ -514,6 +529,7 @@ export default function ESCAPP(options){
     };
     settings.localErState = DEFAULT_ESCAPP_ER_STATE;
     settings.remoteErState = undefined;
+    LocalStorage.removeSetting("localErState");
     LocalStorage.removeSetting("user");
   };
 
@@ -619,6 +635,16 @@ export default function ESCAPP(options){
     }
     settings.remoteErState = remoteErState;
 
+    //Check restart
+    let er_restarted = false;
+    if(this.validateERState(settings.localErState)&&(typeof settings.localErState.startTime !== "undefined")){
+      if(settings.localErState.startTime !== remoteErState.startTime){
+        //The user has restarted the escape room
+        settings.localErState = settings.remoteErState;
+        er_restarted = true;
+      }
+    }
+
     //Add data from remoteErState to the localErState
     //These data must be integrated into the localErState even the user rejects to restore the state
     let erStateKeys = ["nPuzzles","hintsAllowed","startTime","remainingTime","duration","teamId","teamMembers","ranking"];
@@ -643,6 +669,12 @@ export default function ESCAPP(options){
 
     if(this.validateERState(settings.localErState)){
       LocalStorage.saveSetting("localErState",settings.localErState);
+    }
+
+    if(er_restarted){
+      if(typeof settings.onErRestartCallback === "function"){
+        settings.onErRestartCallback(settings.remoteErState);
+      }
     }
   };
 
@@ -838,24 +870,9 @@ export default function ESCAPP(options){
               if(settings.user.participation === "NOT_STARTED"){
                 //User is authenticated and a participant, but the escape room needs to be started.
                 //Ask the participant if he/she wants to start the escape room.
-                this.displayStartDialog(function(start){
-                  if(start===true){
-                    //User wants to init escape room
-                     this.start(function(success){
-                      //ER started (unless error on server side)
-                      if(success===true){
-                        this.displayStartNotification();
-                      }
-                      if(typeof callback === "function"){
-                        callback((success===true));
-                      }
-                    }.bind(this));
-                  } else {
-                    //User do not want to init escape room
-                    //Display error message
-                    if(typeof callback === "function"){
-                      callback(false);
-                    }
+                this.startEscapeRoom(function(started){
+                  if(typeof callback === "function"){
+                    callback(started);
                   }
                 }.bind(this));
               } else {
@@ -878,6 +895,28 @@ export default function ESCAPP(options){
     }.bind(this);
 
     this.displayDialog(dialogOptions);
+  };
+
+  this.startEscapeRoom = function(callback){
+    this.displayStartDialog(function(start){
+      if(start===true){
+        //User wants to init escape room
+         this.start(function(success){
+          //ER started (unless error on server side)
+          if(success===true){
+            this.displayStartNotification();
+          }
+          if(typeof callback === "function"){
+            callback((success===true));
+          }
+        }.bind(this));
+      } else {
+        //User do not want to init escape room
+        if(typeof callback === "function"){
+          callback(false);
+        }
+      }
+    }.bind(this));
   };
 
   this.displayUserParticipationErrorDialog = function(callback){
