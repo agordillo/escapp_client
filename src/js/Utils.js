@@ -39,7 +39,7 @@ export function getParamsFromUrl(url){
       let resultSplit = urlParams[i].split("=");
       if(resultSplit.length===2){
         //key-value pairs
-        params[resultSplit[0]] = resultSplit[1];
+        params[resultSplit[0]] = decodeURIComponent(resultSplit[1]);
       }
     }
     return params;
@@ -55,7 +55,7 @@ export function addParamToUrl(url,paramName,paramValue){
   var splitHash = url.split("#");
   url = splitHash[0];
 
-  var param = paramName+"="+paramValue;
+  var param = paramName + "=" + encodeURIComponent(paramValue);
   if (url.indexOf('?') > -1){
     url += '&'+param;
   }else{

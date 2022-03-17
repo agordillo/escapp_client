@@ -41,6 +41,7 @@ export default function ESCAPP(options){
   let defaults = {
     initCallback: undefined,
     onNewErStateCallback: undefined,
+    onResetCallback: undefined,
     endpoint: undefined,
     localStorageKey: "ESCAPP",
     encryptKey: undefined,
@@ -108,7 +109,7 @@ export default function ESCAPP(options){
       settings.user = user;
     } else {
       //Check if there are user credentials in the URL params
-      let user = this.getUserCredentials({email: URL_params.email, token: URL_params.token});    
+      let user = this.getUserCredentials({email: (URL_params.escapp_email || URL_params.email), token: (URL_params.escapp_token || URL_params.token)});    
       if(typeof user !== "undefined"){
         settings.user = user;
         settings.user.authenticated = true;
@@ -288,8 +289,8 @@ export default function ESCAPP(options){
     if(typeof userCredentials === "undefined"){
       return url;
     }
-    url = Utils.addParamToUrl(url,"email",userCredentials.email);
-    url = Utils.addParamToUrl(url,"token",userCredentials.token);
+    url = Utils.addParamToUrl(url,"escapp_email",userCredentials.email);
+    url = Utils.addParamToUrl(url,"escapp_token",userCredentials.token);
     //Password is never shown on URLs.
     return url;
   };
