@@ -305,8 +305,16 @@ export default function ESCAPP(options){
     return url;
   };
 
-  this.addUserCredentialsAndLocaleToUrl = function(url){
-    return this.addLocaleParamToUrl(this.addUserCredentialsToUrl(url));
+  this.addEndpointParamToUrl = function(url){
+    let urlParams = Utils.getParamsFromCurrentUrl();
+    if(typeof urlParams.endpoint === "string"){
+      url = Utils.addParamToUrl(url,"endpoint",urlParams.endpoint);
+    }
+    return url;
+  };
+
+  this.addEscappSettingsToUrl = function(url){
+    return this.addEndpointParamToUrl(this.addLocaleParamToUrl(this.addUserCredentialsToUrl(url)));
   };
 
   this.startAnimation = function(animation,time){
