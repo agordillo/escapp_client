@@ -9,10 +9,10 @@ let CONFIG = {
   localStorageKey:"LocalStorageKey",
   imagesPath:"./src/images/",
   I18n: {
-    locale: "es",
-    defaultLocale: "es",
     availableLocales: ["es","en"],
-    locales: LOCALES
+    locales: LOCALES,
+    defaultLocale: "es",
+    locale: undefined,
   },
   browserRestrictions: {
     chrome: ">20.1.1432",

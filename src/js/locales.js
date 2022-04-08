@@ -16,7 +16,6 @@ export let ESCAPP_LOCALES = {
     "i.connecton_error_title": "Connection Error",
     "i.connecton_error_text": "Unable to connect to the Escapp platform.",
     
-
     "i.completion_title":"¡Escape Room Completed!",
     "i.completion_text":"¡Congratulations! You have completed the escape room. On the escapp platform you can check the ranking to see in which position you have ended.",
 

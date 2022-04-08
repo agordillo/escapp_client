@@ -142,6 +142,10 @@ export function isEmbed(){
   return _isEmbed;
 };
 
+export function replaceAll(string, find, replace){
+  return string.replace(new RegExp(find.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'), 'g'), replace);
+};
+
 export function debug(msg){
   if(typeof msg === "object"){
     console.log("ESCAPP: [Object]");

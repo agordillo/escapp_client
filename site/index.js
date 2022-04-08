@@ -133,7 +133,7 @@ let loadEvents = function(){
 	});
 	$("#externalApp").click(function(e){
 		let appUrl = $("#externalApp").attr("href");
-		$("#externalApp").attr("href",escapp.addUserCredentialsToUrl(appUrl));
+		$("#externalApp").attr("href",escapp.addUserCredentialsAndLocaleToUrl(appUrl));
 
 	});
 }

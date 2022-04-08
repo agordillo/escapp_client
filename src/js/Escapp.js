@@ -297,6 +297,18 @@ export default function ESCAPP(options){
     return url;
   };
 
+  this.addLocaleParamToUrl = function(url){
+    let urlParams = Utils.getParamsFromCurrentUrl();
+    if(typeof urlParams.locale === "string"){
+      url = Utils.addParamToUrl(url,"locale",urlParams.locale);
+    }
+    return url;
+  };
+
+  this.addUserCredentialsAndLocaleToUrl = function(url){
+    return this.addLocaleParamToUrl(this.addUserCredentialsToUrl(url));
+  };
+
   this.startAnimation = function(animation,time){
     Animations.startAnimation(animation,time);
   };
