@@ -89,8 +89,8 @@ export default function ESCAPP(options){
   this.init = function(){
     //Check URL params
     let URL_params = Utils.getParamsFromCurrentUrl();
-    if(typeof URL_params.endpoint !== "undefined"){
-      settings.endpoint = Utils.checkUrlProtocol(URL_params.endpoint);
+    if(typeof URL_params.escapp_endpoint !== "undefined"){
+      settings.endpoint = Utils.checkUrlProtocol(URL_params.escapp_endpoint);
     }
     
     //Init modules
@@ -307,8 +307,8 @@ export default function ESCAPP(options){
 
   this.addEndpointParamToUrl = function(url){
     let urlParams = Utils.getParamsFromCurrentUrl();
-    if(typeof urlParams.endpoint === "string"){
-      url = Utils.addParamToUrl(url,"endpoint",urlParams.endpoint);
+    if(typeof urlParams.escapp_endpoint === "string"){
+      url = Utils.addParamToUrl(url,"escapp_endpoint",urlParams.escapp_endpoint);
     }
     return url;
   };
