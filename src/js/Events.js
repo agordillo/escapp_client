@@ -1,6 +1,6 @@
 import * as I18n from './I18n.js';
 import * as Utils from './Utils.js';
-import IO from './socket.io';
+import {io as IO} from 'socket.io-client';
 
 let initialized = false;
 let ESCAPP;
