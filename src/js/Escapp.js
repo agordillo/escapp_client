@@ -104,14 +104,21 @@ export default function ESCAPP(options){
     Countdown.init({enabled: ((Notifications.isEnabled())&&(settings.countdown)), escapp: this});
 
     //Get user from LocalStorage
-    let user = LocalStorage.getSetting("user");
-    if(typeof user === "object"){
-      settings.user = user;
+    let userLS = LocalStorage.getSetting("user");
+    //Get user from URL params
+    let userURL = this.getUserCredentials({email: (URL_params.escapp_email || URL_params.email), token: (URL_params.escapp_token || URL_params.token)});
+
+    if((typeof userURL !== "undefined")&&(typeof userLS !== "undefined")&&(userURL.email !== userLS.email)){
+      //A different user is accessing the escape room in the same device
+      this.resetUserCredentials();
+      userLS = undefined;
+    }
+
+    if(typeof userLS === "object"){
+      settings.user = userLS;
     } else {
-      //Check if there are user credentials in the URL params
-      let user = this.getUserCredentials({email: (URL_params.escapp_email || URL_params.email), token: (URL_params.escapp_token || URL_params.token)});    
-      if(typeof user !== "undefined"){
-        settings.user = user;
+      if(typeof userURL !== "undefined"){
+        settings.user = userURL;
         settings.user.authenticated = true;
         settings.user.participation = "PARTICIPANT";
       }
